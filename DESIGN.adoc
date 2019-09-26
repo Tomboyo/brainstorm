@@ -1,0 +1,120 @@
+= Brainstorm
+
+== Goal
+_To Create a minimalistic service and client for a graph-based information storage
+system which concentrates on the dynamic complexity of information systems._
+
+This system is composed of topics and facts. Topics are names which a
+client can query and to which a client may associate facts. Facts are
+descriptive text associated with one or more topics. Facts are added to the
+system over time, causing topics to grow dynamically. Facts are shared
+between topics naturally, limiting redundant data entry, expressing the
+relationships between ideas, and furthermore encouraging identification of
+new relationships between seemingly remote subjects ("elaboration").
+
+== Design
+
+=== Data Structure
+
+Topics are implemented as named nodes in a graph. Facts are (hyper)edges
+between nodes with associated metadata. In particular, topics have a UTF-8
+label attribute and facts have a UTF-8 `content` attribute.
+
+Both topics and facts have a UUID `id` attribute to uniquely identify them.
+This attribute is used to interact with these elements unambiguously.
+
+=== Client
+
+A python CLI client consumes instructions from the user and issues HTTP requests
+to the service. Any complex I/O is handled by invoking an arbitrary text-editor
+process such as `vim` or `gedit`.
+
+The client must:
+
+* Create new topics.
+* Modify existing topics by `label` or `id`.
+* Delete existing topics by `label` or `id`.
+* Query existing topics by `label` or `id`.
+
+* Create new facts.
+* Modify existing facts by `id`. 
+* Delete existing facts by `id`.
+
+The client renders all errors or warnings returned from the service.
+
+=== Service
+
+An Elixir REST server consumes HTTP requests and translates those to Neo4j
+queries. The REST server and database access logic are handled by two
+independent Elxir applications.
+
+The REST endpoints are:
+
+[options=header]
+|===
+| Route                        | Action          | Responses
+| `POST   /topic`              | Create Topic    | 201, 400, 5xx
+| `PUT    /topic/:id_or_label` | Overwrite Topic | 204, 300, 400, 404, 5xx
+| `DELETE /topic/:id_or_label` | Delete Topic    | 204, 300, 400, 404, 409, 5xx
+| `GET    /topic/:id_or_label` | Query Topic     | 200, 300, 400, 404, 5xx
+| `POST   /fact`               | Create Fact     | 201, 400, 5xx
+| `PUT    /fact/:id`           | Update Fact     | 204, 400, 404, 5xx
+| `DELETE /fact/:id`           | Delete Fact     | 204, 400, 404, 5xx
+|===
+
+Cases where the behavior for a given response code is not immediately obvious
+are called out below.
+
+=== (PUT | POST | DELETE) /topic/:id_or_label
+
+* 300: This response indicates that the client provided a `label` which did not
+uniquely identify a topic. A JSON response like the following will indicate
+which topics were ambiguously indicated by the request:
+
+----
+[
+  { "id": <id>, "label": <label> },
+  ...
+]
+----
+
+The client may use this information to clarify their request.
+
+==== POST /topic
+
+* 201: The client must send the application/json header and a body of the form:
++
+----
+{
+  "label": <label>
+}
+----
+Where `<label>` is a UTF-8 string under 100 characters long.
+
+==== DELETE /topic/:id_or_label
+
+* `204`: If no facts are associated with the topic, the topic is deleted and the service
+responds with a `204: No Content`.
+
+* `409`: If one or more facts are associated with the topic, the serivce refuses to
+delete the topic and instead responds with a `409: Conflict`. The client should
+delete those facts which reference the topic first.
+
+==== GET /topic/:id_or_label
+
+* `200`: The topic and all associated facts are returned to the client as a JSON
+payload:
++
+----
+{
+  "label": <label>,
+  "facts": [
+    {
+      "endpoint": { "id": <id>, "label": <label> },
+      "content": <content>
+    },
+    ...
+  ]
+}
+----
+
