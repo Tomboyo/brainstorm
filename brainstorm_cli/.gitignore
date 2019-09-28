@@ -1,0 +1,7 @@
+# Ignore gem dependencies 
+.vendor/
+
+# Ignore bundler files
+.bundle/
+
+pkg/
