@@ -6,6 +6,7 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    irb (1.0.0)
     minitest (5.12.1)
     rake (13.0.0)
 
@@ -15,6 +16,7 @@ PLATFORMS
 DEPENDENCIES
   brainstorm_cli!
   bundler (= 2.0.2)
+  irb
   minitest (= 5.12.1)
   rake (= 13.0.0)
 

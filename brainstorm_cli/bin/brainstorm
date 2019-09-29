@@ -2,4 +2,4 @@
 
 require "brainstorm_cli"
 
-puts BrainstormCli::VERSION
+puts BrainstormCli.main(ARGV)

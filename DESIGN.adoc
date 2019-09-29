@@ -30,7 +30,7 @@ A Neo4j server manages the graph of topics and facts.
 
 === Client
 
-A python CLI client consumes instructions from the user and issues HTTP requests
+A ruby CLI client consumes instructions from the user and issues HTTP requests
 to the service. Any complex input is handled by invoking an arbitrary
 text-editor process such as `vim` or `gedit`.
 
