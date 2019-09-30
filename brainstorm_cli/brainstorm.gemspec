@@ -1,10 +1,10 @@
 lib = File.expand_path("lib", __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "brainstorm_cli/version"
+require "brainstorm/version"
 
 Gem::Specification.new do |spec|
-  spec.name          = "brainstorm_cli"
-  spec.version       = BrainstormCli::VERSION
+  spec.name          = "brainstorm"
+  spec.version       = Brainstorm::VERSION
   spec.authors       = ["Tom Simmons (Tomboyo)"]
   spec.email         = ["tomasimmons@gmail.com"]
   spec.summary       = "Brainstorm CLI"

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    brainstorm_cli (0.1.0)
+    brainstorm (0.1.0)
 
 GEM
   remote: https://rubygems.org/
@@ -14,7 +14,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  brainstorm_cli!
+  brainstorm!
   bundler (= 2.0.2)
   irb
   minitest (= 5.12.1)

@@ -1,3 +1,3 @@
-module BrainstormCli
+module Brainstorm
   VERSION = "0.1.0"
 end
