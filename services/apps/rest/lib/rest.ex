@@ -1,0 +1,2 @@
+defmodule Rest do
+end

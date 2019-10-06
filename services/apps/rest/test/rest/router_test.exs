@@ -1,8 +1,8 @@
-defmodule Service.RouterTest do
+defmodule Rest.RouterTest do
   use ExUnit.Case
   use Plug.Test
 
-  alias Service.Router
+  alias Rest.Router
 
   @opts Router.init([])
 
