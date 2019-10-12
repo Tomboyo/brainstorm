@@ -2,9 +2,22 @@ defmodule Database.Topic do
 
   alias Database.Id
 
+  @type t :: __MODULE__
+
   @enforce_keys [:id, :label]
   defstruct [ :id, :label ]
 
+  @doc """
+  Create a new topic with the given label and a new id.
+
+  ## Examples
+
+      iex> topic = Database.Topic.new("my label!")
+      iex> topic.label
+      "my label!"
+      iex> topic.id |> Database.Id.is_id()
+      true
+  """
   def new(label), do: %__MODULE__{
     id:    Id.new(),
     label: label
@@ -20,7 +33,7 @@ defmodule Database.Topic do
     })
     |> case do
       { :ok, _response } -> :ok
-      { :error, error }  -> { :error, error }
+      { :error, cause }  -> { :error, cause }
     end
   end
 
@@ -36,7 +49,7 @@ defmodule Database.Topic do
     |> case do
       { :ok, [] }       -> nil
       { :ok, [ one ]}   -> one["topic"].properties |> to_topic()
-      { :error, error } -> { :error, error }
+      { :error, cause } -> { :error, cause }
     end
   end
 

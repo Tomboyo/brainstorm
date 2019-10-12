@@ -1,16 +1,9 @@
 defmodule Database.TopicTest do
   use ExUnit.Case
   use Database.Case
+  doctest Database.Topic
 
-  alias Database.{ Id, Topic }
-
-  test "Topic.new returns a topic" do
-    %Topic{} = Topic.new("my label")
-  end
-
-  test "Topic.new generates an id" do
-    %Id{} = Topic.new("my label").id
-  end
+  alias Database.Topic
 
   describe "given a persistent topic" do
     setup do
