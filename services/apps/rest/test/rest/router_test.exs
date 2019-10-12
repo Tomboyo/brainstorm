@@ -3,18 +3,27 @@ defmodule Rest.RouterTest do
   use Plug.Test
 
   alias Rest.Router
-  alias Database.Id
+  alias Database.{ Id, Topic }
 
   @opts Router.init([])
 
-  defmodule MockDatabase do
-    def create_topic(label) do
-      send(self(), { MockDatabase, label })
-      Id.new("mock id")
+  @mock_id_string "mock id"
+  @mock_topic     %Topic{ id: Id.new(@mock_id_string), label: "mock label" }
+  def mock_topic(), do: @mock_topic
+
+  defmodule Mock.Database.Topic do
+    def new(label) do
+      send(self(), { __MODULE__, :new, label })
+      Rest.RouterTest.mock_topic()
+    end
+
+    def persist(topic) do
+      send(self(), { __MODULE__, :persist, topic })
+      :ok
     end
   end
 
-  describe "successful POST /topic" do
+  describe "given a JSON request containing a topic label" do
 
     setup do
       label = "my label"
@@ -22,25 +31,31 @@ defmodule Rest.RouterTest do
       conn =
         conn(:post, "/topic", "{ \"label\": \"#{label}\" }")
         |> put_req_header("content-type", "application/json")
-        |> Plug.Conn.assign(:database, MockDatabase)
+        |> Plug.Conn.assign(:topic_database, Mock.Database.Topic)
         |> Router.call(@opts)
 
       [ conn: conn, label: label ]
     end
 
-    test "it invokes database.create_topic with the given label", %{
+    test "POST /topic creates a new topic", %{
       label: label
     } do
-      assert_received { MockDatabase, ^label }
+      assert_received { Mock.Database.Topic, :new, ^label }
     end
 
-    test "it responds with the stringified data layer id", %{
+    test "POST /topic persists the new topic" do
+      assert_received { Mock.Database.Topic, :persist, @mock_topic }
+    end
+
+    test "POST /topic returns the topic id as a string", %{
       conn: conn
     } do
-      assert "mock id" == conn.resp_body
+      assert @mock_id_string == conn.resp_body
     end
 
-    test "it responds with a 201", %{ conn: conn } do
+    test "POST /topic responds with a 201", %{
+      conn: conn
+    } do
       assert 201 == conn.status
     end
   end

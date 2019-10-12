@@ -8,26 +8,18 @@ defmodule Rest.Router do
   plug :dispatch
 
   post "/topic" do
-    with { :ok, database } <- fetch(Map, conn.assigns, :database),
-         { :ok, params   } <- fetch(Map, conn, :body_params),
-         { :ok, label    } <- fetch(Map, params, "label")
+    topic_db = Map.get(conn.assigns, :topic_database, Database.Topic)
+
+    with { :ok, params } <- Map.fetch(conn, :body_params),
+         { :ok, label  } <- Map.fetch(params, "label"),
+         topic           <- topic_db.new(label),
+         :ok             <- topic_db.persist(topic)
     do
-      id =
-        database.create_topic(label)
-        |> to_string()
-      send_resp(conn, 201, id)
+      send_resp(conn, 201, topic.id |> to_string())
     else
-      # TODO: UNTESTED
       error ->
         IO.inspect(error)
         send_resp(conn, 503, "TODO: real error handling")
-    end
-  end
-
-  defp fetch(module, fetchable, key) do
-    case module.fetch(fetchable, key) do
-      { :ok, value } -> { :ok, value }
-      :error -> { :error, "Key `#{key}` not found in `#{inspect(fetchable)}`" }
     end
   end
 end
