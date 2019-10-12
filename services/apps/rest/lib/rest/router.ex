@@ -12,7 +12,9 @@ defmodule Rest.Router do
          { :ok, params   } <- fetch(Map, conn, :body_params),
          { :ok, label    } <- fetch(Map, params, "label")
     do
-      id = database.create_topic(label)
+      id =
+        database.create_topic(label)
+        |> to_string()
       send_resp(conn, 201, id)
     else
       # TODO: UNTESTED

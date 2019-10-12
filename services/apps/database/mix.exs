@@ -9,9 +9,13 @@ defmodule Database.MixProject do
     deps_path: "../../deps",
     lockfile: "../../mix.lock",
     elixir: "~> 1.9",
+    elixirc_paths: elixirc_paths(Mix.env()),
     start_permanent: Mix.env() == :prod,
     deps: deps()
   ]
+
+  def elixirc_paths(:test), do: [ "lib", "test_support" ]
+  def elixirc_paths(_), do: [ "lib" ]
 
   def application, do: [
     extra_applications: [:logger],

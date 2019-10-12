@@ -1,0 +1,1 @@
+CREATE CONSTRAINT ON (topic :topic) ASSERT topic.id IS UNIQUE

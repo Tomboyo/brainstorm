@@ -20,6 +20,7 @@ defmodule Rest.MixProject do
 
   defp deps, do: [
     { :plug_cowboy, "~> 2.1.0" },
-    { :jason, "~> 1.1.2" }
+    { :jason, "~> 1.1.2" },
+    { :database, in_umbrella: true }
   ]
 end

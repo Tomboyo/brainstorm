@@ -3,13 +3,14 @@ defmodule Rest.RouterTest do
   use Plug.Test
 
   alias Rest.Router
+  alias Database.Id
 
   @opts Router.init([])
 
   defmodule MockDatabase do
     def create_topic(label) do
       send(self(), { MockDatabase, label })
-      "mock id"
+      Id.new("mock id")
     end
   end
 
@@ -33,7 +34,7 @@ defmodule Rest.RouterTest do
       assert_received { MockDatabase, ^label }
     end
 
-    test "it responds with the id returned by database.create_topic", %{
+    test "it responds with the stringified data layer id", %{
       conn: conn
     } do
       assert "mock id" == conn.resp_body
