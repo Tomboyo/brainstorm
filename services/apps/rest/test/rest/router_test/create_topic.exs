@@ -1,4 +1,4 @@
-defmodule Rest.RouterTest do
+defmodule Rest.RouterTest.CreateTopic do
   use ExUnit.Case
   use Plug.Test
 
@@ -23,7 +23,7 @@ defmodule Rest.RouterTest do
     end
   end
 
-  describe "given a JSON request containing a topic label" do
+  describe "given a JSON request containing a topic label to POST /topic" do
 
     setup do
       label = "my label"
@@ -37,23 +37,23 @@ defmodule Rest.RouterTest do
       [ conn: conn, label: label ]
     end
 
-    test "POST /topic creates a new topic", %{
+    test "it creates a new topic", %{
       label: label
     } do
       assert_received { Mock.Database.Topic, :new, ^label }
     end
 
-    test "POST /topic persists the new topic" do
+    test "it persists the new topic" do
       assert_received { Mock.Database.Topic, :persist, @mock_topic }
     end
 
-    test "POST /topic returns the topic id as a string", %{
+    test "it returns the topic id as a string", %{
       conn: conn
     } do
       assert @mock_id_string == conn.resp_body
     end
 
-    test "POST /topic responds with a 201", %{
+    test "it responds with a 201", %{
       conn: conn
     } do
       assert 201 == conn.status
