@@ -1,4 +1,4 @@
-defmodule Rest.RouterTest.CreateTopic do
+defmodule Rest.RouterTest.CreateTopicTest do
   use ExUnit.Case
   use Plug.Test
 
@@ -14,7 +14,7 @@ defmodule Rest.RouterTest.CreateTopic do
   defmodule Mock.Database.Topic do
     def new(label) do
       send(self(), { __MODULE__, :new, label })
-      Rest.RouterTest.mock_topic()
+      Rest.RouterTest.CreateTopicTest.mock_topic()
     end
 
     def persist(topic) do
