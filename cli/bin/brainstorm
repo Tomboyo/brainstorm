@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
 
-require "brainstorm"
+require 'brainstorm/cli'
 
-puts Brainstorm::Cli.new.main(ARGV)
+puts Brainstorm::Cli.new.call(ARGV)

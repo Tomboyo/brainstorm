@@ -1,4 +1,3 @@
-require "test_helper.rb"
 require 'brainstorm'
 require 'brainstorm/cli'
 
