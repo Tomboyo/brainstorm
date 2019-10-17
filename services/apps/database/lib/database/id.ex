@@ -5,7 +5,21 @@ defmodule Database.Id do
   @enforce_keys [ :value ]
   defstruct [ :value ]
 
-  def new(), do: %__MODULE__{ value: "TODO! Not exercised by tests yet." }
+  @doc """
+  Create a new and globally unique Id. This relies on the global uniqueness of
+  UUIDs.
+
+  ## Examples
+
+      iex> Database.Id.new() == Database.Id.new()
+      false
+
+  """
+  def new() do
+    %__MODULE__{
+      value: UUID.uuid4()
+    }
+  end
 
   @doc """
   Create a new Id from the given string. This is the functional inverse of
@@ -36,7 +50,13 @@ defmodule Database.Id do
 
   """
   def is_id(id) when is_binary(id) do
-    "TODO! Not exercised by tests yet." == id
+    match?(
+      <<_::bytes-size(8), "-",
+        _::bytes-size(4), "-",
+        _::bytes-size(4), "-",
+        _::bytes-size(4), "-",
+        _::bytes-size(12)>>,
+      id)
   end
 
   def is_id(%__MODULE__{} = _id), do: true

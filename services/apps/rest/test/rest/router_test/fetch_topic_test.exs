@@ -7,13 +7,13 @@ defmodule Rest.RouterTest.FetchTopicTest do
 
   @opts Router.init([])
 
-  @mock_id_string "the_given_id"
-  @mock_label     "mock label"
-  @mock_topic     %Topic{ id: Id.new(@mock_id_string), label: @mock_label }
+  @mock_id    Id.new("mock id string")
+  @mock_label "mock label"
+  @mock_topic %Topic{ id: @mock_id, label: @mock_label }
   def mock_topic(), do: @mock_topic
 
   defmodule Mock.Database.Topic do
-    def fetch(id) do
+    def fetch(%Id{} = id) do
       send(self(), { __MODULE__, :fetch, id })
       Rest.RouterTest.FetchTopicTest.mock_topic()
     end
@@ -23,7 +23,7 @@ defmodule Rest.RouterTest.FetchTopicTest do
 
     setup do
       conn =
-        conn(:get, "/topic/#{@mock_id_string}", nil)
+        conn(:get, "/topic/#{@mock_id}", nil)
         |> Plug.Conn.assign(:topic_database, Mock.Database.Topic)
         |> Router.call(@opts)
 
@@ -31,7 +31,7 @@ defmodule Rest.RouterTest.FetchTopicTest do
     end
 
     test "it fetches the topic from the data layer" do
-      assert_received { Mock.Database.Topic, :fetch, @mock_id_string }
+      assert_received { Mock.Database.Topic, :fetch, @mock_id }
     end
 
     # TODO: facts

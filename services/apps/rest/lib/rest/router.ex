@@ -1,7 +1,7 @@
 defmodule Rest.Router do
   use Plug.Router
 
-  alias Database.Topic
+  alias Database.{ Id, Topic }
 
   plug :match
   plug Plug.Parsers,
@@ -30,6 +30,7 @@ defmodule Rest.Router do
 
     with { :ok, params } <- Map.fetch(conn, :params),
          { :ok, id     } <- Map.fetch(params, "id"),
+         id              <- Id.new(id),
          # TODO: Needs to be { :ok, value } tuple or else we can bleed an error.
          topic_or_nil    <- topic_db.fetch(id),
          { :ok, body }   <- encode(topic_or_nil)
