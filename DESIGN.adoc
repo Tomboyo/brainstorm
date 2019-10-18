@@ -49,7 +49,7 @@ independent Elxir applications.
 | `PUT    /topic/:id`             | <<Update Topic>> | 204, 400, 404
 | `DELETE /topic/:id`             | <<Delete Topic>> | 204, 404, 409
 | `GET    /topic?search=<search>` | <<Find Topic>>   | 200, 400, 404
-| `GET    /topic/:id`             | <<Query Topic>>  | 200, 404
+| `GET    /topic/:id`             | <<Fetch Topic>>  | 200, 404
 | `POST   /fact`                  | <<Create Fact>>  | 201, 400
 | `PUT    /fact/:id`              | <<Update Fact>>  | 204, 400, 404
 | `DELETE /fact/:id`              | <<Delete Fact>>  | 204, 404
@@ -132,7 +132,7 @@ contains a JSON list of those topics:
 * `400`: The request is missing a search parameter.
 * `404`: No topic matches the search term.
 
-===== Query Topic
+===== Fetch Topic
 _GET /topic/:id_
 
 Fetch a topic and its associated facts.
