@@ -28,6 +28,17 @@ module Brainstorm::CliTest
     end
   end
 
+  describe 'version' do
+    before do
+      cli = Cli.new(nil)
+      @subject = cli.call([ 'version' ])
+    end
+
+    it 'returns the gem version' do
+      assert_equal Brainstorm::VERSION, @subject
+    end
+  end
+
   describe 'create-topic' do
     before do
       @mock_service = MockService.new
