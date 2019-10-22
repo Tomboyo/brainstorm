@@ -100,8 +100,8 @@ module Brainstorm::CliTest
           @mock_service.called
       end
 
-      it 'returns the topic hash from Service#fetch_topic' do
-        assert_equal MOCK_TOPIC, @subject
+      it 'returns returns an adoc with the topic label as a title' do
+        assert_includes @subject, "= #{MOCK_TOPIC["label"]}"
       end
     end
 

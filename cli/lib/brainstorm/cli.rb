@@ -52,8 +52,13 @@ class Brainstorm::Cli
       error('Invalid arguments')
     else
       id = args.first
-      @service.fetch_topic(id)
+      topic = @service.fetch_topic(id)
+      format_topic(topic)
     end
+  end
+
+  def format_topic(topic)
+    "= #{topic["label"]}"
   end
   
 end

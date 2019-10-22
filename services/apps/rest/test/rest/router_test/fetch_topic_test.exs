@@ -34,7 +34,6 @@ defmodule Rest.RouterTest.FetchTopicTest do
       assert_received { Mock.Database.Topic, :fetch, @mock_id }
     end
 
-    # TODO: facts
     test "it returns the topic as json", %{
       conn: conn
     } do
