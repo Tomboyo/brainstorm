@@ -1,0 +1,7 @@
+= Brainstorm
+
+== Design
+For a high-level overview of this project's goals and architecture, see link:DESIGN.adoc[the initial design document].
+
+== Planning
+For an outline of planned and in-progress work, see https://github.com/tomboyo/brainstorm/projects/1[the 1.0.0 project board]. "Planned" stories are those that will be completed in 1.0.0. When a planned story reaches the Design and Construction column, it is broken down into additional stories (usually to capture error handling or other more specific cases) and assigned more technical requirements (e.g. input and output formatting). Resulting stories are added to the Planned or Unplanned categories as appropriate, the latter capturing "nice-to-have" features or else "good ideas" that go beyond the MVP scope of 1.0.0.
