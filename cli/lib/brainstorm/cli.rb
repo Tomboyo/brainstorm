@@ -10,7 +10,7 @@ class Brainstorm::Cli
   CONFIG_PATH = '~/.brainstorm/config'
 
   def initialize(service = nil)
-    if service != nil
+    if nil != service
       @service = service
     else
       file_path = File.expand_path(CONFIG_PATH)

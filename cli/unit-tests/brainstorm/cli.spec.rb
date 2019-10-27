@@ -2,36 +2,15 @@ require "brainstorm"
 require 'brainstorm/cli'
 
 require "minitest/autorun"
+require 'minitest/mock'
 
 module Brainstorm::CliTest
 
   Cli = Brainstorm::Cli
 
-  MOCK_ID = "mock topic id"
-  MOCK_TOPIC = { "label" => "mock label" }
-
-  # TODO: Don't be lazy and learn how Rubyists create mocks.
-  class MockService
-    attr_reader :called
-
-    def initialize()
-      @called = []
-    end
-
-    def create_topic(label)
-      @called << { method: :create_topic, label: label }
-      MOCK_ID
-    end
-
-    def fetch_topic(id)
-      @called << { method: :fetch_topic, id: id }
-      MOCK_TOPIC
-    end
-  end
-
   describe Brainstorm::Cli do
     before do
-      @mock_service = MockService.new
+      @mock_service = Minitest::Mock.new
       @cli = Cli.new(@mock_service)
     end
 
@@ -49,16 +28,19 @@ module Brainstorm::CliTest
       describe 'when given a label argument' do
         before do
           @label = 'my label'
+          
+          @new_topic_id = 'new topic id'
+          @mock_service.expect :create_topic, @new_topic_id, [ @label ]
+
           @subject = @cli.call([ 'create-topic', @label ])
         end
 
         it 'invokes Service#create_topic' do
-          assert_includes @mock_service.called,
-            { method: :create_topic, label: @label }
+          @mock_service.verify
         end
 
         it 'returns the id from Service#create_topic' do
-          assert_equal MOCK_ID, @subject
+          assert_equal @new_topic_id, @subject
         end
       end
 
@@ -86,17 +68,20 @@ module Brainstorm::CliTest
     describe 'fetch-topic' do
       describe 'when given an id argument' do
         before do
-          @id = 'some-id'
+          @id = 'given id'
+
+          @topic = { 'label' => 'topic label' }
+          @mock_service.expect :fetch_topic, @topic, [ @id ]
+
           @subject = @cli.call([ 'fetch-topic', @id ])
         end
 
         it 'invokes Service#fetch_topic' do
-          assert_includes @mock_service.called,
-            { method: :fetch_topic, id: @id }
+          @mock_service.verify
         end
 
         it 'returns returns an adoc with the topic label as a title' do
-          assert_includes @subject, "= #{MOCK_TOPIC["label"]}"
+          assert_includes @subject, "= #{@topic['label']}"
         end
       end
 
