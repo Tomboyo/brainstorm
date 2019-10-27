@@ -10,6 +10,7 @@ module Brainstorm::CliTest
   MOCK_ID = "mock topic id"
   MOCK_TOPIC = { "label" => "mock label" }
 
+  # TODO: Don't be lazy and learn how Rubyists create mocks.
   class MockService
     attr_reader :called
 
@@ -28,102 +29,97 @@ module Brainstorm::CliTest
     end
   end
 
-  describe 'version' do
-    before do
-      cli = Cli.new(nil)
-      @subject = cli.call([ 'version' ])
-    end
-
-    it 'returns the gem version' do
-      assert_equal Brainstorm::VERSION, @subject
-    end
-  end
-
-  describe 'create-topic' do
+  describe Brainstorm::Cli do
     before do
       @mock_service = MockService.new
       @cli = Cli.new(@mock_service)
     end
 
-    describe 'when given a label argument' do
+    describe 'version' do
       before do
-        @label = 'my label'
-        @subject = @cli.call([ 'create-topic', @label ])
+        @subject = @cli.call([ 'version' ])
       end
 
-      it 'invokes Service#create_topic' do
-        assert_equal [{ method: :create_topic, label: @label }],
-          @mock_service.called
-      end
-
-      it 'returns the id from Service#create_topic' do
-        assert_equal MOCK_ID, @subject
+      it 'returns the gem version' do
+        assert_equal Brainstorm::VERSION, @subject
       end
     end
 
-    describe 'when given too few arguments' do
-      before do
-        @subject = @cli.call([ 'create-topic' ])
+    describe 'create-topic' do
+      describe 'when given a label argument' do
+        before do
+          @label = 'my label'
+          @subject = @cli.call([ 'create-topic', @label ])
+        end
+
+        it 'invokes Service#create_topic' do
+          assert_equal [{ method: :create_topic, label: @label }],
+            @mock_service.called
+        end
+
+        it 'returns the id from Service#create_topic' do
+          assert_equal MOCK_ID, @subject
+        end
       end
 
-      it 'returns an error' do
-        assert @subject.start_with?('Error: ')
+      describe 'when given too few arguments' do
+        before do
+          @subject = @cli.call([ 'create-topic' ])
+        end
+
+        it 'returns an error' do
+          assert @subject.start_with?('Error: ')
+        end
+      end
+
+      describe 'when given too many arguments' do
+        before do
+          @subject = @cli.call([ 'create-topic', 'a', 'b' ])
+        end
+
+        it 'returns an error' do
+          assert @subject.start_with?('Error: ')
+        end
       end
     end
 
-    describe 'when given too many arguments' do
-      before do
-        @subject = @cli.call([ 'create-topic', 'a', 'b' ])
+    describe 'fetch-topic' do
+      describe 'when given an id argument' do
+        before do
+          @id = 'some-id'
+          @subject = @cli.call([ 'fetch-topic', @id ])
+        end
+
+        it 'invokes Service#fetch_topic' do
+          assert_equal [{ method: :fetch_topic, id: @id }],
+            @mock_service.called
+        end
+
+        it 'returns returns an adoc with the topic label as a title' do
+          assert_includes @subject, "= #{MOCK_TOPIC["label"]}"
+        end
       end
 
-      it 'returns an error' do
-        assert @subject.start_with?('Error: ')
+      describe 'when given too few arguments' do
+        before do
+          @subject = @cli.call([ 'fetch-topic' ])
+        end
+
+        it 'returns an error' do
+          assert @subject.start_with?('Error: ')
+        end
+      end
+
+      describe 'when given too many arguments' do
+        before do
+          @subject = @cli.call([ 'fetch-topic', 'a', 'b' ])
+        end
+
+        it 'returns an error' do
+          assert @subject.start_with?('Error: ')
+        end
       end
     end
 
   end
-
-  describe 'fetch-topic' do
-    before do
-      @mock_service = MockService.new
-      @cli = Cli.new(@mock_service)
-    end
-
-    describe 'when given an id argument' do
-      before do
-        @id = 'some-id'
-        @subject = @cli.call([ 'fetch-topic', @id ])
-      end
-
-      it 'invokes Service#fetch_topic' do
-        assert_equal [{ method: :fetch_topic, id: @id }],
-          @mock_service.called
-      end
-
-      it 'returns returns an adoc with the topic label as a title' do
-        assert_includes @subject, "= #{MOCK_TOPIC["label"]}"
-      end
-    end
-
-    describe 'when given too few arguments' do
-      before do
-        @subject = @cli.call([ 'fetch-topic' ])
-      end
-
-      it 'returns an error' do
-        assert @subject.start_with?('Error: ')
-      end
-    end
-
-    describe 'when given too many arguments' do
-      before do
-        @subject = @cli.call([ 'fetch-topic', 'a', 'b' ])
-      end
-
-      it 'returns an error' do
-        assert @subject.start_with?('Error: ')
-      end
-    end
-  end
-
 end
