@@ -53,8 +53,8 @@ module Brainstorm::CliTest
         end
 
         it 'invokes Service#create_topic' do
-          assert_equal [{ method: :create_topic, label: @label }],
-            @mock_service.called
+          assert_includes @mock_service.called,
+            { method: :create_topic, label: @label }
         end
 
         it 'returns the id from Service#create_topic' do
@@ -91,8 +91,8 @@ module Brainstorm::CliTest
         end
 
         it 'invokes Service#fetch_topic' do
-          assert_equal [{ method: :fetch_topic, id: @id }],
-            @mock_service.called
+          assert_includes @mock_service.called,
+            { method: :fetch_topic, id: @id }
         end
 
         it 'returns returns an adoc with the topic label as a title' do
