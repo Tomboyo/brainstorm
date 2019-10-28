@@ -2,44 +2,37 @@ defmodule Rest.RouterTest.FetchTopicTest do
   use ExUnit.Case
   use Plug.Test
 
+  import Mox
+
   alias Rest.Router
   alias Database.{ Id, Topic }
 
   @opts Router.init([])
 
-  @mock_id    Id.new("mock id string")
-  @mock_label "mock label"
-  @mock_topic %Topic{ id: @mock_id, label: @mock_label }
-  def mock_topic(), do: @mock_topic
-
-  defmodule Mock.Database.Topic do
-    def fetch(%Id{} = id) do
-      send(self(), { __MODULE__, :fetch, id })
-      Rest.RouterTest.FetchTopicTest.mock_topic()
-    end
-  end
+  setup :verify_on_exit!
 
   describe "given a request to GET /topic/:id for an existing topic" do
-
     setup do
+      id = Id.new("mock id string")
+
+      topic = %Topic{ id: id, label: "topic label" }
+      Database.TopicMock
+      |> expect(:fetch, fn ^id -> topic end)
+
       conn =
-        conn(:get, "/topic/#{@mock_id}", nil)
-        |> Plug.Conn.assign(:topic_database, Mock.Database.Topic)
+        conn(:get, "/topic/#{id}", nil)
         |> Router.call(@opts)
 
-      [ conn: conn ]
-    end
-
-    test "it fetches the topic from the data layer" do
-      assert_received { Mock.Database.Topic, :fetch, @mock_id }
+      [ conn: conn, topic: topic ]
     end
 
     test "it returns the topic as json", %{
-      conn: conn
+      conn: conn,
+      topic: topic
     } do
       { :ok, expected } = Jason.decode("""
         {
-          "label": "#{@mock_label}"
+          "label": "#{topic.label}"
         }
       """)
 

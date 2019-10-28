@@ -1,5 +1,4 @@
 defmodule Database.Topic do
-
   alias Database.Id
 
   @type t :: __MODULE__
@@ -7,6 +6,7 @@ defmodule Database.Topic do
   @enforce_keys [:id, :label]
   defstruct [ :id, :label ]
 
+  @callback new(String.t) :: __MODULE__.t
   @doc """
   Create a new topic with the given label and a new id.
 
@@ -23,6 +23,7 @@ defmodule Database.Topic do
     label: label
   }
 
+  @callback persist(__MODULE__.t) :: :ok | { :error, any }
   @persist """
   CREATE (:topic { id: $id, label: $label })
   """
@@ -38,6 +39,7 @@ defmodule Database.Topic do
   end
 
 
+  @callback fetch(Id.t) ::  nil | __MODULE__.t | { :error, any }
   @fetch """
   MATCH (topic :topic { id: $id })
   RETURN topic

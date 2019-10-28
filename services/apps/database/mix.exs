@@ -25,6 +25,7 @@ defmodule Database.MixProject do
   defp deps, do: [
     { :bolt_sips, "~> 1.5.1" },
     { :toml, "~> 0.5.2" },
-    { :elixir_uuid, "~> 1.2.0" }
+    { :elixir_uuid, "~> 1.2.0" },
+    { :mox, "~> 0.5.1", only: :test },
   ]
 end

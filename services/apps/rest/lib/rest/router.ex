@@ -3,6 +3,9 @@ defmodule Rest.Router do
 
   alias Database.{ Id, Topic }
 
+  @topic_db Application.get_env(
+    :rest, :topic_database, Database.Topic)
+
   plug :match
   plug Plug.Parsers,
     parsers: [:json],
@@ -10,12 +13,10 @@ defmodule Rest.Router do
   plug :dispatch
 
   post "/topic" do
-    topic_db = Map.get(conn.assigns, :topic_database, Database.Topic)
-
     with { :ok, params } <- Map.fetch(conn, :body_params),
          { :ok, label  } <- Map.fetch(params, "label"),
-         topic           <- topic_db.new(label),
-         :ok             <- topic_db.persist(topic)
+         topic           <- @topic_db.new(label),
+         :ok             <- @topic_db.persist(topic)
     do
       send_resp(conn, 201, topic.id |> to_string())
     else
@@ -26,13 +27,11 @@ defmodule Rest.Router do
   end
 
   get "/topic/:id" do
-    topic_db = Map.get(conn.assigns, :topic_database, Database.Topic)
-
     with { :ok, params } <- Map.fetch(conn, :params),
          { :ok, id     } <- Map.fetch(params, "id"),
          id              <- Id.new(id),
          # TODO: Needs to be { :ok, value } tuple or else we can bleed an error.
-         topic_or_nil    <- topic_db.fetch(id),
+         topic_or_nil    <- @topic_db.fetch(id),
          { :ok, body }   <- encode(topic_or_nil)
     do
       conn
