@@ -26,6 +26,10 @@ class Brainstorm::Service
     log_error("Failed to fetch id `#{id}`", e)
   end
 
+  def create_fact(ids, content)
+    "create_fact stub"
+  end
+
   private
   
   def post(path, hash)

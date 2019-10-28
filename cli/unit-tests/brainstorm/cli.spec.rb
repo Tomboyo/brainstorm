@@ -11,7 +11,8 @@ module Brainstorm::CliTest
   describe Brainstorm::Cli do
     before do
       @mock_service = Minitest::Mock.new
-      @cli = Cli.new(@mock_service)
+      @mock_editor = Minitest::Mock.new
+      @cli = Cli.new(@mock_service, @mock_editor)
     end
 
     describe 'version' do
@@ -106,5 +107,32 @@ module Brainstorm::CliTest
       end
     end
 
+    describe 'create-fact' do
+      describe 'given topic ids and content from an editor' do
+        before do
+          @ids = [ 'id-1', 'id-2' ]
+
+          @content = "mock content from the editor"
+          @mock_editor.expect :get_content, @content, []
+
+          @id = 'mock fact id returned by service'
+          @mock_service.expect :create_fact, @id, [ @ids, @content ]
+
+          @subject = @cli.call([ 'create-fact', *@ids ])
+        end
+
+        it 'invokes Service#create_fact' do
+          @mock_service.verify
+        end
+
+        it 'invokes Editor#get_content' do
+          @mock_editor.verify
+        end
+
+        it 'returns the new fact id from Service' do
+          assert_equal @id, @subject
+        end
+      end
+    end
   end
 end

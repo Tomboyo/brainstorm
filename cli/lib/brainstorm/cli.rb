@@ -7,16 +7,9 @@ class Brainstorm::Cli
 
   Service = Brainstorm::Service
 
-  CONFIG_PATH = '~/.brainstorm/config'
-
-  def initialize(service = nil)
-    if nil != service
-      @service = service
-    else
-      file_path = File.expand_path(CONFIG_PATH)
-      configuration = Tomlrb.load_file(file_path)["rest"]
-      @service = Service.new(configuration)
-    end
+  def initialize(service, editor)
+    @service = service
+    @editor = editor
   end
 
   def call(args)
@@ -29,6 +22,8 @@ class Brainstorm::Cli
       create_topic(args)
     when 'fetch-topic'
       fetch_topic(args)
+    when 'create-fact'
+      create_fact(args)
     end
   end
 
@@ -60,5 +55,10 @@ class Brainstorm::Cli
   def format_topic(topic)
     "= #{topic["label"]}"
   end
-  
+
+  def create_fact(args)
+    ids = args
+    content = @editor.get_content()
+    @service.create_fact(ids, content)
+  end
 end

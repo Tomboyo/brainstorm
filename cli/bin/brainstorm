@@ -1,5 +1,13 @@
 #!/usr/bin/env ruby
 
+require 'brainstorm/configuration'
+require 'brainstorm/service'
+require 'brainstorm/editor'
 require 'brainstorm/cli'
 
-puts Brainstorm::Cli.new.call(ARGV)
+config  = Brainstorm::Configuration.get_config()
+service = Brainstorm::Service.new(config["rest"])
+editor  = Brainstorm::Editor.new()
+cli     = Brainstorm::Cli.new(service, editor)
+
+puts cli.call(ARGV)
