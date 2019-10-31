@@ -133,6 +133,16 @@ module Brainstorm::CliTest
           assert_equal @id, @subject
         end
       end
+    
+      describe 'given too few arguments' do
+        before do
+          @subject = @cli.call([ 'create-fact' ])
+        end
+
+        it 'returns an error' do
+          assert @subject.start_with?('Error: ')
+        end
+      end
     end
   end
 end

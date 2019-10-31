@@ -57,8 +57,12 @@ class Brainstorm::Cli
   end
 
   def create_fact(args)
-    ids = args
-    content = @editor.get_content()
-    @service.create_fact(ids, content)
+    if 1 > args.length
+      error('Invalid arguments')
+    else
+      ids = args
+      content = @editor.get_content()
+      @service.create_fact(ids, content)
+    end
   end
 end
