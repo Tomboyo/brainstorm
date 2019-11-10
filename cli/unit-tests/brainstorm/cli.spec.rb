@@ -67,7 +67,7 @@ module Brainstorm::CliTest
     end
 
     describe 'fetch-topic' do
-      describe 'when given an id argument' do
+      describe 'when given the id of a topic with no facts' do
         before do
           @id = 'given id'
 
@@ -81,8 +81,13 @@ module Brainstorm::CliTest
           @mock_service.verify
         end
 
-        it 'returns returns an adoc with the topic label as a title' do
+        it 'returns an adoc with the topic label as a title' do
           assert_includes @subject, "= #{@topic['label']}"
+        end
+
+        it 'returns an adoc with an empty list of facts' do
+          assert_includes @subject,
+            "(No facts are associated with this topic.)"
         end
       end
 

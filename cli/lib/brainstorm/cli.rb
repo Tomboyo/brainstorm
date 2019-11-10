@@ -53,7 +53,14 @@ class Brainstorm::Cli
   end
 
   def format_topic(topic)
-    "= #{topic["label"]}"
+    <<~ADOC
+    = #{topic["label"]}
+    #{format_facts(topic["facts"])}
+    ADOC
+  end
+
+  def format_facts(facts)
+  '(No facts are associated with this topic.)'
   end
 
   def create_fact(args)
