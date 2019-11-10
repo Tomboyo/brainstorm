@@ -1,7 +1,7 @@
 defmodule Rest.Router do
   use Plug.Router
 
-  alias Database.{ Id, Topic }
+  alias Database.{ Id }
 
   @topic_db Application.get_env(
     :rest, :topic_database, Database.Topic)
@@ -46,8 +46,8 @@ defmodule Rest.Router do
     raise "not yet implemented!"
   end
 
-  defp encode(%Topic{} = topic) do
-    Jason.encode(topic)
+  defp encode(fragment = %{}) do
+    Jason.encode(fragment)
   end
 
   post "/fact" do

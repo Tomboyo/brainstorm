@@ -6,7 +6,7 @@ defmodule Rest.RouterTest.CreateFactTest do
   import Mox
 
   alias Rest.Router
-  alias Database.{ Fact, Id, Topic }
+  alias Database.{ Fact, Id }
 
   @opts Router.init([])
 

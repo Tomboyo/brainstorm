@@ -39,10 +39,13 @@ defmodule Database.Topic do
   end
 
 
-  @callback fetch(Id.t) ::  nil | __MODULE__.t | { :error, any }
+  @callback fetch(Id.t) ::
+    nil
+  | %{ label: String.t, facts: [] }
+  | { :error, any }
   @fetch """
   MATCH (topic :topic { id: $id })
-  RETURN topic
+  RETURN topic.label
   """
   def fetch(%Id{} = id) do
     Database.query(@fetch, %{
@@ -50,16 +53,9 @@ defmodule Database.Topic do
     })
     |> case do
       { :ok, [] }       -> nil
-      { :ok, [ one ]}   -> one["topic"].properties |> to_topic()
+      { :ok, [ one ]}   -> %{ label: one["topic.label"], facts: [] }
       { :error, cause } -> { :error, cause }
     end
-  end
-
-  defp to_topic(%{ "id" => id, "label" => label }) do
-    %__MODULE__{
-      id:    Id.new(id),
-      label: label
-    }
   end
 
 end
