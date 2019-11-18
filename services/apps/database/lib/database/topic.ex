@@ -41,7 +41,7 @@ defmodule Database.Topic do
 
   @callback fetch(Id.t) ::
     nil
-  | %{ label: String.t, facts: [] }
+  | %{ topic: t, facts: MapSet.t(Datbase.Fact.t) }
   | { :error, any }
   @fetch """
   MATCH (topic :topic { id: $id })
@@ -53,7 +53,10 @@ defmodule Database.Topic do
     })
     |> case do
       { :ok, [] }       -> nil
-      { :ok, [ one ]}   -> %{ label: one["topic.label"], facts: [] }
+      { :ok, [ one ]}   -> %{
+          topic: %__MODULE__{ id: id, label: one["topic.label"] },
+          facts: MapSet.new([])
+        }
       { :error, cause } -> { :error, cause }
     end
   end

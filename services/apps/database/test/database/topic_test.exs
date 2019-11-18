@@ -12,19 +12,17 @@ defmodule Database.TopicTest do
       [ topic: topic ]
     end
 
-    test "Topic.fetch returns a map with the topic label", %{
-      topic: persistent
+    test "Topic.fetch returns a map with the topic", %{
+      topic: topic
     } do
-      expected_label = persistent.label
-      actual = Topic.fetch(persistent.id)
-      assert ^expected_label = actual.label
+      assert %{ topic: ^topic } = Topic.fetch(topic.id)
     end
 
-    test "Topic.fetch returns a map with an empty facts array", %{
-      topic: persistent
+    test "Topic.fetch returns a map with no facts", %{
+      topic: topic
     } do
-      actual = Topic.fetch(persistent.id)
-      assert [] == actual.facts
+      facts = MapSet.new([])
+      assert %{ facts: ^facts } = Topic.fetch(topic.id)
     end
 
     test "Topic.persist fails to persist the topic again", %{

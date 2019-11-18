@@ -5,7 +5,7 @@ defmodule Rest.RouterTest.FetchTopicTest do
   import Mox
 
   alias Rest.Router
-  alias Database.{ Id }
+  alias Database.{ Id, Topic }
 
   @opts Router.init([])
 
@@ -14,28 +14,32 @@ defmodule Rest.RouterTest.FetchTopicTest do
   describe "given a request to GET /topic/:id for an existing topic" do
     setup do
       id = Id.new("mock id string")
+      topic = %Topic{ id: id, label: "topic label" }
+      facts = MapSet.new([])
 
-      fragment = %{
-        label: "topic label",
-        facts: []
-      }
       Database.TopicMock
-      |> expect(:fetch, fn ^id -> fragment end)
+      |> expect(:fetch, fn ^id -> %{
+          topic: topic,
+          facts: facts
+        } end)
 
       conn =
         conn(:get, "/topic/#{id}", nil)
         |> Router.call(@opts)
 
-      [ conn: conn, fragment: fragment ]
+      [ conn: conn, topic: topic ]
     end
 
     test "it returns the topic as json", %{
       conn: conn,
-      fragment: fragment
+      topic: topic
     } do
       { :ok, expected } = Jason.decode("""
         {
-          "label": "#{fragment.label}",
+          "topic": {
+            "id":    "#{topic.id |> to_string()}",
+            "label": "#{topic.label}"
+          },
           "facts": []
         }
       """)

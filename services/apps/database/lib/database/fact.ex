@@ -1,6 +1,11 @@
 defmodule Database.Fact do
 
-  @type t :: __MODULE__
+  @type t :: %__MODULE__{
+    id:      Datbase.Id.t,
+    content: String.t,
+    topics:  [ Database.Id.t ] | [ Database.Topic.t ]
+  }
+
   @enforce_keys [ :id, :topics, :content ]
   defstruct [ :id, :topics, :content ]
 

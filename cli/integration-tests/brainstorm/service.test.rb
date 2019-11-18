@@ -19,6 +19,6 @@ class Brainstorm::ServiceTest < Minitest::Test
     topic = @service.fetch_topic(id)
 
     # Then I get the topic I created
-    assert_equal label, topic['label']
+    assert_equal label, topic['topic']['label']
   end
 end
