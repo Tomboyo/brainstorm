@@ -10,7 +10,7 @@ defmodule Database.Fact do
   @enforce_keys [ :id, :topics, :content ]
   defstruct [ :id, :topics, :content ]
 
-  @callback new([ Id.t ], String.t) :: { :ok, t }
+  @callback new([ Id.t ], String.t) :: t
   @doc """
   Create a fact for the given topics with the given content and a new Id. Facts
   may relate one or two nodes; three or more is unsupported.
@@ -31,6 +31,21 @@ defmodule Database.Fact do
       id: Id.new(),
       topics: topics,
       content: content
+    }
+  end
+
+  @callback new(
+    id      :: String.t,
+    content :: String.t,
+    topics  :: [ Topic.t ] | Enumerable.t
+  ) :: t
+  def new(id, content, topics)
+  when is_binary(id) and is_binary(content)
+  do
+    %__MODULE__{
+      id:      Database.Id.new(id),
+      content: content,
+      topics:  MapSet.new(topics)
     }
   end
 

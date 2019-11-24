@@ -23,6 +23,16 @@ defmodule Database.Topic do
     label: label
   }
 
+  @callback new(
+    id    :: String.t,
+    label :: String.t
+  ) :: t
+  def new(id, label)
+  when is_binary(id) and is_binary(label)
+  do
+    %__MODULE__{ id: Database.Id.new(id), label: label }
+  end
+
   @callback persist(__MODULE__.t) :: :ok | { :error, any }
   @persist """
   CREATE (:topic { id: $id, label: $label })
@@ -48,7 +58,7 @@ defmodule Database.Topic do
   MATCH (topic :topic { id: $id })
   RETURN
     topic.label,
-    [ (topic)-[f:fact]->(o) | [ f.id, f.content, o.id, o.label ]] as facts
+    [ (topic)-[f:fact]->(t) | [ f.id, f.content, t.id, t.label ]] as facts
   """
   def fetch(%Id{} = id) do
     Database.query(@fetch, %{
@@ -56,21 +66,21 @@ defmodule Database.Topic do
     })
     |> case do
       { :ok, [] }        -> nil
-      { :ok, [ record ]} ->
-        topic = %__MODULE__{ id: id, label: record["topic.label"] }
-        facts = record["facts"]
-          |> Stream.map(fn [ f_id, f_content, o_id, o_label ] ->
-              other_topic = %__MODULE__{ id: Database.Id.new(o_id), label: o_label }
-              %Fact{
-                id: Database.Id.new(f_id),
-                content: f_content,
-                topics: MapSet.new([topic, other_topic])
-              }
-            end)
-          |> Enum.into(MapSet.new())
-        %{ topic: topic, facts: facts }
+      { :ok, [ record ]} -> to_document(id, record)
       { :error, cause }  -> { :error, cause }
     end
+  end
+
+  defp to_document(id, record) do
+    topic = %__MODULE__{ id: id, label: record["topic.label"] }
+    facts = record["facts"]
+      |> Stream.map(fn [ f_id, f_content, t_id, t_label ] ->
+          topics = [ topic, new(t_id, t_label) ]
+          Fact.new(f_id, f_content, topics)
+        end)
+      |> Enum.into(MapSet.new())
+
+    %{ topic: topic, facts: facts }
   end
 
 end
