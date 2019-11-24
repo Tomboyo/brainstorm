@@ -7,6 +7,8 @@ defmodule Rest.Router do
     :rest, :topic_database, Database.Topic)
   @fact_db Application.get_env(
     :rest, :fact_database, Database.Fact)
+  @document_db Application.get_env(
+    :rest, :document_database, Database.Document)
 
   plug :match
   plug Plug.Parsers,
@@ -26,13 +28,13 @@ defmodule Rest.Router do
     end
   end
 
-  get "/topic/:id" do
+  get "/document/:id" do
     with { :ok, params } <- Map.fetch(conn, :params),
          { :ok, id     } <- Map.fetch(params, "id"),
          id              <- Id.new(id),
          # TODO: Needs to be { :ok, value } tuple or else we can bleed an error.
-         topic_or_nil    <- @topic_db.fetch(id),
-         { :ok, body }   <- encode(topic_or_nil)
+         document_or_nil <- @document_db.fetch(id),
+         { :ok, body }   <- encode(document_or_nil)
     do
       conn
       |> put_resp_header("content-type", "application/json")
@@ -46,8 +48,8 @@ defmodule Rest.Router do
     raise "not yet implemented!"
   end
 
-  defp encode(fragment = %{}) do
-    Jason.encode(fragment)
+  defp encode(%Database.Document{} = document) do
+    Jason.encode(document)
   end
 
   post "/fact" do

@@ -1,8 +1,20 @@
 import Jason.Encode
 
+defimpl Jason.Encoder, for: Database.Document do
+  def encode(document, opts) do
+    map(Map.take(document, [ :topic, :facts ]), opts)
+  end
+end
+
 defimpl Jason.Encoder, for: Database.Topic do
   def encode(topic, opts) do
     map(Map.take(topic, [ :id, :label ]), opts)
+  end
+end
+
+defimpl Jason.Encoder, for: Database.Fact do
+  def encode(fact, opts) do
+    map(Map.take(fact, [ :id, :content, :topics ]), opts)
   end
 end
 
