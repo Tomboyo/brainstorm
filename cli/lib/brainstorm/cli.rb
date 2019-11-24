@@ -47,20 +47,40 @@ class Brainstorm::Cli
       error('Invalid arguments')
     else
       id = args.first
-      topic = @service.fetch_document(id)
-      format_topic(topic)
+      document = @service.fetch_document(id)
+      format_document(document)
     end
   end
 
-  def format_topic(topic)
+  def format_document(document)
+    topic = document['topic']
+    facts = document['facts']
+
     <<~ADOC
-    = #{topic["label"]}
-    #{format_facts(topic["facts"])}
+    = #{topic['label']}
+    #{format_facts(facts)}
     ADOC
   end
 
   def format_facts(facts)
-  '(No facts are associated with this topic.)'
+    if facts.empty?
+      "(No facts are associated with this topic.)"
+    else
+      facts
+        .map { |fact| format_fact(fact) }
+        .join("\n")
+    end
+  end
+
+  def format_fact(fact)
+    heading = fact['topics']
+      .map { |topic| "<#{topic['id']}> #{topic['label']}" }
+      .join(", ")
+    
+    <<~ADOC
+    == #{heading}
+    #{fact['content']}
+    ADOC
   end
 
   def create_fact(args)

@@ -71,8 +71,10 @@ module Brainstorm::CliTest
         before do
           @id = 'given id'
 
-          @topic = { 'label' => 'topic label' }
-          @mock_service.expect :fetch_document, @topic, [ @id ]
+          @topic = { 'topic' => 'topic label' }
+          @facts = []
+          @document = { 'topic' => @topic, 'facts' => @facts }
+          @mock_service.expect :fetch_document, @document, [ @id ]
 
           @subject = @cli.call([ 'fetch-document', @id ])
         end
@@ -88,6 +90,47 @@ module Brainstorm::CliTest
         it 'returns an adoc with an empty list of facts' do
           assert_includes @subject,
             "(No facts are associated with this topic.)"
+        end
+      end
+
+      describe 'when given the id of a topic with associated facts' do
+        before do
+          @id = 'given id'
+          @topic = { 'id' => @id, 'label' => 'topic label' }
+          @other_topic = { 'id' => 'other id', 'label' => 'other topic label' }
+          @fact = {
+            'id' => 'fact id',
+            'content' => 'fact content',
+            'topics' => [ @topic, @other_topic ]
+          }
+          @document = {
+            'topic' => @topic,
+            'facts' => [ @fact ]
+          }
+
+          @mock_service.expect :fetch_document, @document, [ @id ]
+
+          @subject = @cli.call([ 'fetch-document', @id ])
+        end
+
+        it 'invokes Service#fetch_document' do
+          @mock_service.verify
+        end
+
+        it 'returns an adoc with the topic label as a title' do
+          assert_includes @subject, "= #{@topic['label']}"
+        end
+
+        it 'returns an adoc with the content of each fact' do
+          assert_includes @subject, @fact['content']
+        end
+
+        it 'returns an adoc with the id of each other related topic' do
+          assert_includes @subject, @other_topic['id']
+        end
+
+        it 'returns an adoc with the label of each other related topic' do
+          assert_includes @subject, @other_topic['label']
         end
       end
 
