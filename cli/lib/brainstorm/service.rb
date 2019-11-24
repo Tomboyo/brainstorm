@@ -19,8 +19,8 @@ class Brainstorm::Service
     log_error("Failed to create topic with label `#{label}`", e)
   end
 
-  def fetch_topic(id)
-    json = get("/topic/#{CGI::escape(id)}")
+  def fetch_document(id)
+    json = get("/document/#{CGI::escape(id)}")
     JSON.parse(json)
   rescue Exception => e
     log_error("Failed to fetch id `#{id}`", e)

@@ -10,15 +10,15 @@ class Brainstorm::ServiceTest < Minitest::Test
       "port" => 8080)
   end
 
-  def test_create_and_fetch_a_topic
+  def test_create_and_fetch_a_document
     # After I create a new topic
     label = 'my topic label'
     id = @service.create_topic(label)
 
     # When I fetch the returned id
-    topic = @service.fetch_topic(id)
+    document = @service.fetch_document(id)
 
-    # Then I get the topic I created
-    assert_equal label, topic['topic']['label']
+    # Then I get a document for that topic
+    assert_equal label, document['topic']['label']
   end
 end

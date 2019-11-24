@@ -66,18 +66,18 @@ module Brainstorm::CliTest
       end
     end
 
-    describe 'fetch-topic' do
+    describe 'fetch-document' do
       describe 'when given the id of a topic with no facts' do
         before do
           @id = 'given id'
 
           @topic = { 'label' => 'topic label' }
-          @mock_service.expect :fetch_topic, @topic, [ @id ]
+          @mock_service.expect :fetch_document, @topic, [ @id ]
 
-          @subject = @cli.call([ 'fetch-topic', @id ])
+          @subject = @cli.call([ 'fetch-document', @id ])
         end
 
-        it 'invokes Service#fetch_topic' do
+        it 'invokes Service#fetch_document' do
           @mock_service.verify
         end
 
@@ -93,7 +93,7 @@ module Brainstorm::CliTest
 
       describe 'when given too few arguments' do
         before do
-          @subject = @cli.call([ 'fetch-topic' ])
+          @subject = @cli.call([ 'fetch-document' ])
         end
 
         it 'returns an error' do
@@ -103,7 +103,7 @@ module Brainstorm::CliTest
 
       describe 'when given too many arguments' do
         before do
-          @subject = @cli.call([ 'fetch-topic', 'a', 'b' ])
+          @subject = @cli.call([ 'fetch-document', 'a', 'b' ])
         end
 
         it 'returns an error' do

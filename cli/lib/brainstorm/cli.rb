@@ -20,8 +20,8 @@ class Brainstorm::Cli
       Brainstorm::VERSION
     when 'create-topic'
       create_topic(args)
-    when 'fetch-topic'
-      fetch_topic(args)
+    when 'fetch-document'
+      fetch_document(args)
     when 'create-fact'
       create_fact(args)
     end
@@ -42,12 +42,12 @@ class Brainstorm::Cli
     "Error: #{message}"
   end
 
-  def fetch_topic(args)
+  def fetch_document(args)
     if args.length != 1
       error('Invalid arguments')
     else
       id = args.first
-      topic = @service.fetch_topic(id)
+      topic = @service.fetch_document(id)
       format_topic(topic)
     end
   end
