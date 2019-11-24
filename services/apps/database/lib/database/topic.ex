@@ -1,5 +1,5 @@
 defmodule Database.Topic do
-  alias Database.Id
+  alias Database.{ Fact, Id }
 
   @type t :: __MODULE__
 
@@ -39,25 +39,37 @@ defmodule Database.Topic do
   end
 
 
+  # TODO: this is concerned with topics AND facts, now. Move?
   @callback fetch(Id.t) ::
     nil
-  | %{ topic: t, facts: MapSet.t(Datbase.Fact.t) }
+  | (document :: %{ topic: t, facts: MapSet.t(Database.Fact.t) })
   | { :error, any }
   @fetch """
   MATCH (topic :topic { id: $id })
-  RETURN topic.label
+  RETURN
+    topic.label,
+    [ (topic)-[f:fact]->(o) | [ f.id, f.content, o.id, o.label ]] as facts
   """
   def fetch(%Id{} = id) do
     Database.query(@fetch, %{
       id: to_string(id)
     })
     |> case do
-      { :ok, [] }       -> nil
-      { :ok, [ one ]}   -> %{
-          topic: %__MODULE__{ id: id, label: one["topic.label"] },
-          facts: MapSet.new([])
-        }
-      { :error, cause } -> { :error, cause }
+      { :ok, [] }        -> nil
+      { :ok, [ record ]} ->
+        topic = %__MODULE__{ id: id, label: record["topic.label"] }
+        facts = record["facts"]
+          |> Stream.map(fn [ f_id, f_content, o_id, o_label ] ->
+              other_topic = %__MODULE__{ id: Database.Id.new(o_id), label: o_label }
+              %Fact{
+                id: Database.Id.new(f_id),
+                content: f_content,
+                topics: MapSet.new([topic, other_topic])
+              }
+            end)
+          |> Enum.into(MapSet.new())
+        %{ topic: topic, facts: facts }
+      { :error, cause }  -> { :error, cause }
     end
   end
 
