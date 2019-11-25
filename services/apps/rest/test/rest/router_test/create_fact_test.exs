@@ -27,7 +27,7 @@ defmodule Rest.RouterTest.CreateFactTest do
         content: content
       }
       Database.FactMock
-      |> expect(:new, fn ^topics, ^content -> { :ok, mock_fact } end)
+      |> expect(:new, fn ^topics, ^content -> mock_fact end)
       |> expect(:persist, fn ^mock_fact -> :ok end)
 
       conn =

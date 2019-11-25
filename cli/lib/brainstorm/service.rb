@@ -27,7 +27,9 @@ class Brainstorm::Service
   end
 
   def create_fact(ids, content)
-    "create_fact stub"
+    post('/fact', { 'topics' => ids, 'content' => content }).body
+  rescue Exception => e
+    log_error("Failed to create fact", e)
   end
 
   private
