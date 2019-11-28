@@ -25,7 +25,15 @@ class Brainstorm::Service
 
   def fetch_document(id)
     json = get("/document/#{CGI::escape(id)}")
-    JSON.parse(json)
+    document = JSON.parse(json)
+    
+    document['facts'] = Set.new(document['facts'])
+    document['facts'] = document['facts'].map! do |fact|
+      fact['topics'] = Set.new(fact['topics'])
+      fact
+    end
+    
+    document
   rescue Exception => e
     log_error("Failed to fetch id `#{id}`", e)
   end

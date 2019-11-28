@@ -38,16 +38,16 @@ class Brainstorm::CliTest < Minitest::Test
     document = @cli.call([ 'fetch-document', topic_a_id ])
 
     # Then I get a document for the fetched topic
-    assert_equal document, {
+    assert_equal({
       'topic' => { 'id' => topic_a_id, 'label' => 'Topic A' },
-      'facts' => [{
+      'facts' => Set.new([{
         'id' => fact_id,
         'content' => 'fact content',
-        'topics' => [
+        'topics' => Set.new([
           { 'id' => topic_a_id, 'label' => 'Topic A' },
           { 'id' => topic_b_id, 'label' => 'Topic B' }
-        ]
-      }]
-    }
+        ])
+      }])
+    }, document)
   end
 end
