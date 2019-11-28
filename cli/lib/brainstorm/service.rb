@@ -5,6 +5,10 @@ require 'cgi/util'
 require 'json'
 require 'net/http'
 
+# A simple HTTP client for the brainstorm service.
+#
+# This is only exercised by the end-to-end tests because of the complexity in
+# setting up a mock service to test against.
 class Brainstorm::Service
   include Brainstorm::Logging
 
