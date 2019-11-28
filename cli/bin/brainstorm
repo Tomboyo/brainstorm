@@ -1,13 +1,15 @@
 #!/usr/bin/env ruby
 
 require 'brainstorm/configuration'
+require 'brainstorm/adoc_presenter'
 require 'brainstorm/service'
 require 'brainstorm/editor'
 require 'brainstorm/cli'
 
-config  = Brainstorm::Configuration.get_config()
-service = Brainstorm::Service.new(config["rest"])
-editor  = Brainstorm::Editor.new()
-cli     = Brainstorm::Cli.new(service, editor)
+config    = Brainstorm::Configuration.get_config()
+presenter = Brainstorm::AdocPresenter.new
+service   = Brainstorm::Service.new(config["rest"])
+editor    = Brainstorm::Editor.new()
+cli       = Brainstorm::Cli.new(service, editor, presenter)
 
 puts cli.call(ARGV)

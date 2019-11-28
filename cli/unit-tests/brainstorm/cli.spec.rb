@@ -6,13 +6,12 @@ require 'minitest/mock'
 
 module Brainstorm::CliTest
 
-  Cli = Brainstorm::Cli
-
   describe Brainstorm::Cli do
     before do
       @mock_service = Minitest::Mock.new
       @mock_editor = Minitest::Mock.new
-      @cli = Cli.new(@mock_service, @mock_editor)
+      @mock_presenter = Minitest::Mock.new
+      @cli = Brainstorm::Cli.new(@mock_service, @mock_editor, @mock_presenter)
     end
 
     describe 'version' do
@@ -67,70 +66,28 @@ module Brainstorm::CliTest
     end
 
     describe 'fetch-document' do
-      describe 'when given the id of a topic with no facts' do
+      describe 'when given the id of a topic' do
         before do
-          @id = 'given id'
-
-          @topic = { 'topic' => 'topic label' }
-          @facts = []
-          @document = { 'topic' => @topic, 'facts' => @facts }
+          @id = 'a topic id'
+          @document = 'unpresented document'
           @mock_service.expect :fetch_document, @document, [ @id ]
+
+          @presented = 'presented document'
+          @mock_presenter.expect :present, @presented, [ @document ]
 
           @subject = @cli.call([ 'fetch-document', @id ])
         end
 
-        it 'invokes Service#fetch_document' do
+        it 'invokes service#fetch_document on the topic id' do
           @mock_service.verify
         end
 
-        it 'returns an adoc with the topic label as a title' do
-          assert_includes @subject, "= #{@topic['label']}"
+        it 'invokes presenter#present on the fetched document' do
+          @mock_presenter.verify
         end
 
-        it 'returns an adoc with an empty list of facts' do
-          assert_includes @subject,
-            "(No facts are associated with this topic.)"
-        end
-      end
-
-      describe 'when given the id of a topic with associated facts' do
-        before do
-          @id = 'given id'
-          @topic = { 'id' => @id, 'label' => 'topic label' }
-          @other_topic = { 'id' => 'other id', 'label' => 'other topic label' }
-          @fact = {
-            'id' => 'fact id',
-            'content' => 'fact content',
-            'topics' => [ @topic, @other_topic ]
-          }
-          @document = {
-            'topic' => @topic,
-            'facts' => [ @fact ]
-          }
-
-          @mock_service.expect :fetch_document, @document, [ @id ]
-
-          @subject = @cli.call([ 'fetch-document', @id ])
-        end
-
-        it 'invokes Service#fetch_document' do
-          @mock_service.verify
-        end
-
-        it 'returns an adoc with the topic label as a title' do
-          assert_includes @subject, "= #{@topic['label']}"
-        end
-
-        it 'returns an adoc with the content of each fact' do
-          assert_includes @subject, @fact['content']
-        end
-
-        it 'returns an adoc with the id of each other related topic' do
-          assert_includes @subject, @other_topic['id']
-        end
-
-        it 'returns an adoc with the label of each other related topic' do
-          assert_includes @subject, @other_topic['label']
+        it 'returns the presented document' do
+          assert_equal @subject, 'presented document'
         end
       end
 

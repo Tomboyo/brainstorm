@@ -7,9 +7,10 @@ class Brainstorm::Cli
 
   Service = Brainstorm::Service
 
-  def initialize(service, editor)
+  def initialize(service, editor, presenter)
     @service = service
     @editor = editor
+    @presenter = presenter
   end
 
   def call(args)
@@ -48,39 +49,8 @@ class Brainstorm::Cli
     else
       id = args.first
       document = @service.fetch_document(id)
-      format_document(document)
+      @presenter.present(document)
     end
-  end
-
-  def format_document(document)
-    topic = document['topic']
-    facts = document['facts']
-
-    <<~ADOC
-    = #{topic['label']}
-    #{format_facts(facts)}
-    ADOC
-  end
-
-  def format_facts(facts)
-    if facts.empty?
-      "(No facts are associated with this topic.)"
-    else
-      facts
-        .map { |fact| format_fact(fact) }
-        .join("\n")
-    end
-  end
-
-  def format_fact(fact)
-    heading = fact['topics']
-      .map { |topic| "<#{topic['id']}> #{topic['label']}" }
-      .join(", ")
-    
-    <<~ADOC
-    == #{heading}
-    #{fact['content']}
-    ADOC
   end
 
   def create_fact(args)
