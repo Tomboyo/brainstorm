@@ -1,5 +1,6 @@
 require 'brainstorm'
 require 'brainstorm/logging'
+require 'brainstorm/model/document'
 
 require 'cgi/util'
 require 'json'
