@@ -1,10 +1,12 @@
 require "brainstorm"
 require 'brainstorm/cli'
+require 'brainstorm/model/document'
 
 require "minitest/autorun"
 require 'minitest/mock'
 
 module Brainstorm::CliTest
+  Document = Brainstorm::Model::Document
 
   describe Brainstorm::Cli do
     before do
@@ -69,7 +71,7 @@ module Brainstorm::CliTest
       describe 'when given the id of a topic' do
         before do
           @id = 'a topic id'
-          @document = 'unpresented document'
+          @document = Document.new('topic label', [])
           @mock_service.expect :fetch_document, @document, [ @id ]
 
           @presented = 'presented document'

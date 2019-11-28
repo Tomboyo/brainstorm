@@ -1,10 +1,16 @@
 require "brainstorm"
 require 'brainstorm/service'
 require 'brainstorm/cli'
+require 'brainstorm/model/document'
+require 'brainstorm/model/fact'
+require 'brainstorm/model/topic'
 
 require 'minitest/autorun'
 
 class Brainstorm::CliTest < Minitest::Test
+  Document = Brainstorm::Model::Document
+  Fact     = Brainstorm::Model::Fact
+  Topic    = Brainstorm::Model::Topic
 
   # Allows this suite to operate on the data structures instead of renderings
   # of those structures.
@@ -38,16 +44,11 @@ class Brainstorm::CliTest < Minitest::Test
     document = @cli.call([ 'fetch-document', topic_a_id ])
 
     # Then I get a document for the fetched topic
-    assert_equal({
-      'topic' => { 'id' => topic_a_id, 'label' => 'Topic A' },
-      'facts' => Set.new([{
-        'id' => fact_id,
-        'content' => 'fact content',
-        'topics' => Set.new([
-          { 'id' => topic_a_id, 'label' => 'Topic A' },
-          { 'id' => topic_b_id, 'label' => 'Topic B' }
-        ])
-      }])
-    }, document)
+    topic_a  = Topic.new(topic_a_id, 'Topic A')
+    topic_b  = Topic.new(topic_b_id, 'Topic B')
+    fact     = Fact.new(fact_id, 'fact content', [ topic_a, topic_b ])
+    expected = Document.new(topic_a, [ fact ])
+
+    assert_equal expected, document
   end
 end
