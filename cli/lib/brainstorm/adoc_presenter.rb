@@ -1,4 +1,5 @@
 require 'brainstorm'
+require 'brainstorm/version'
 
 class Brainstorm::AdocPresenter
 

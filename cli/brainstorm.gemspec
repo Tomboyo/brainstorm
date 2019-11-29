@@ -19,6 +19,7 @@ Gem::Specification.new do |spec|
     `git ls-files -z`
       .split("\x0")
       .reject { |f| f.match(%r{^(unit\-tests/)}) }
+      .reject { |f| f.match(%r{^(integration\-tests/)}) }
   end
 
   spec.executables = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
