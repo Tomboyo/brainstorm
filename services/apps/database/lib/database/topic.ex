@@ -49,9 +49,22 @@ defmodule Database.Topic do
   end
 
   @callback find(String.t) :: MapSet.t(__MODULE__.t)
-  def find(_search) do
-    # Stub
-    MapSet.new([])
+  @find """
+  CALL db.index.fulltext.queryNodes(
+    "topic_label",
+    $search_term)
+  YIELD node
+  RETURN node.id as id, node.label as label
+  """
+  def find(search_term) when is_binary(search_term) do
+    Database.query(@find, %{ "search_term" => search_term })
+    |> case do
+      { :ok, topics } ->
+        for %{ "id" => id, "label" => label } <- topics,
+          into: MapSet.new(),
+          do: %__MODULE__{ id: Id.new(id), label: label }
+      { :error, cause } -> { :error, cause }
+    end
   end
 
 end
