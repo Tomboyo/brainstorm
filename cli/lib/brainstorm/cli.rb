@@ -25,6 +25,8 @@ class Brainstorm::Cli
       fetch_document(args)
     when 'create-fact'
       create_fact(args)
+    when 'find-topics'
+      find_topics(args)
     end
   end
 
@@ -49,7 +51,7 @@ class Brainstorm::Cli
     else
       id = args.first
       document = @service.fetch_document(id)
-      @presenter.present(document)
+      @presenter.present_document(document)
     end
   end
 
@@ -60,6 +62,16 @@ class Brainstorm::Cli
       ids = args
       content = @editor.get_content()
       @service.create_fact(ids, content)
+    end
+  end
+
+  def find_topics(args)
+    unless args.length == 1
+      error('Invalid arguments')
+    else
+      search_term = args.first
+      topics = @service.find_topics(search_term)
+      @presenter.present_topics(topics)
     end
   end
 end

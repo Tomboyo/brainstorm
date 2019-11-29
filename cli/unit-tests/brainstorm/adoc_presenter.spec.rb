@@ -22,7 +22,7 @@ module Brainstorm::AdocPresenterTest
       fact_2   = Fact.new('fact-2-id', 'fact 2 content', [ topic_a, topic_b ])
       document = Document.new(topic_a, [ fact_1, fact_2 ])
 
-      @subject = presenter.present(document)
+      @subject = presenter.present_document(document)
     end
 
     # Characterization test for simplicity.

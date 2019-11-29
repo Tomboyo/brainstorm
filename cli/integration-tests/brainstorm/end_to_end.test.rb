@@ -15,9 +15,8 @@ class Brainstorm::CliTest < Minitest::Test
   # Allows this suite to operate on the data structures instead of renderings
   # of those structures.
   class NoopPresenter
-    def present(document) 
-      document
-    end
+    def present_document(document) ; document ; end
+    def present_topics(topics) ; topics ; end
   end
 
   def setup
@@ -31,8 +30,12 @@ class Brainstorm::CliTest < Minitest::Test
     @cli = Brainstorm::Cli.new(service, @mock_editor, presenter)
   end
 
+  def test_version
+    assert_equal Brainstorm::VERSION, @cli.call([ 'version' ])
+  end
+
   def test_create_and_fetch_a_document
-    # When I create two topis
+    # When I create two topics
     topic_a_id = @cli.call([ 'create-topic', 'Topic A' ])
     topic_b_id = @cli.call([ 'create-topic', 'Topic B' ])
 
@@ -51,4 +54,23 @@ class Brainstorm::CliTest < Minitest::Test
 
     assert_equal expected, document
   end
+
+  # TODO: Must run against empty DB. This test is not re-runnable!
+  # To fix: implement delete-topic logic.
+  def test_create_and_find_topics
+    # Given I have created some topics
+    topic_c_id = @cli.call([ 'create-topic', 'Topic C' ])
+    topic_d_id = @cli.call([ 'create-topic', 'Topic D' ])
+
+    # When I search for a matching term
+    topics = @cli.call([ 'find-topics', 'Topic' ])
+
+    # Then I find those topics
+    expected = Set.new([
+      Topic.new(topic_c_id, 'Topic C'),
+      Topic.new(topic_d_id, 'Topic D')
+    ])
+    assert_equal expected, topics
+  end
+
 end

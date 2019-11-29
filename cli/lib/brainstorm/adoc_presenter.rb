@@ -1,10 +1,8 @@
 require 'brainstorm'
-require 'brainstorm/model/fact'
-require 'brainstorm/model/topic'
 
 class Brainstorm::AdocPresenter
 
-  def present(document)
+  def present_document(document)
     facts = document.facts
       .sort { |f1, f2| paragraph(0, f1) <=> paragraph(0, f2) }
       .to_a
@@ -14,6 +12,12 @@ class Brainstorm::AdocPresenter
       paragraphs(facts),
       references(facts),
     ].join("\n\n") << ("\n")
+  end
+
+  def present_topics(topics)
+    topics
+      .map { |topic| "#{topic.label} <#{topic.id}>" }
+      .join("\n")
   end
 
   private
