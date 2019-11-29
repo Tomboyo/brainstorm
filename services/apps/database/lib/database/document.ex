@@ -41,7 +41,7 @@ defmodule Database.Document do
   MATCH (topic :topic { id: $id })
   RETURN
     topic.label,
-    [ (topic)-[f:fact]->(t) | [ f.id, f.content, t.id, t.label ]] as facts
+    [ (topic)-[f:fact]-(t) | [ f.id, f.content, t.id, t.label ]] as facts
   """
   def fetch(%Id{} = id) do
     Database.query(@fetch, %{
