@@ -11,13 +11,13 @@ class Brainstorm::AdocPresenter
       title(document.topic.label),
       paragraphs(facts),
       references(facts),
-    ].join("\n\n") << ("\n")
+    ].join("\n\n") << "\n"
   end
 
   def present_topics(topics)
     topics
       .map { |topic| "#{topic.label} <#{topic.id}>" }
-      .join("\n")
+      .join("\n") << "\n"
   end
 
   private
