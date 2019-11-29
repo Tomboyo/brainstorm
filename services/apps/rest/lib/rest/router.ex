@@ -28,6 +28,31 @@ defmodule Rest.Router do
     end
   end
 
+  get "/topic" do
+    with { :ok, params } <- param(conn, :params),
+         { :ok, search } <- param(params, "search"),
+         topics          <- @topic_db.find(search),
+         { :ok, json }   <- Jason.encode(topics)
+    do
+      if Enum.empty?(topics) do
+        send_resp(conn, 404, "")
+      else
+        send_resp(conn, 200, json)
+      end
+    else
+      error -> todo_real_error_handling(conn, error)
+    end
+  end
+
+  # TODO: incorporate into real error handling.
+  # Useful for figuring out what parameters were missing.
+  defp param(map, key) do
+    case Map.fetch(map, key) do
+      { :ok, value } -> { :ok, value }
+      :error         -> { :error, "#{key} not found" }
+    end
+  end
+
   get "/document/:id" do
     with { :ok, params } <- Map.fetch(conn, :params),
          { :ok, id     } <- Map.fetch(params, "id"),

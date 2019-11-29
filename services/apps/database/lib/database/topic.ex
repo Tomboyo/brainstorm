@@ -48,4 +48,10 @@ defmodule Database.Topic do
     end
   end
 
+  @callback find(String.t) :: MapSet.t(__MODULE__.t)
+  def find(_search) do
+    # Stub
+    MapSet.new([])
+  end
+
 end
