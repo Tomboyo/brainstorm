@@ -109,7 +109,7 @@ _GET /topic?search=<search>_
 
 Find topics that match a given search term.
 
-* `200`: One or more topics match the given search term. The response body
+* `200`: Zero or more topics match the given search term. The response body
 contains a JSON list of those topics:
 +
 ----
@@ -120,7 +120,6 @@ contains a JSON list of those topics:
 ----
 
 * `400`: The request is missing a search parameter.
-* `404`: No topic matches the search term.
 
 ===== Fetch Topic
 _GET /topic/:id_
