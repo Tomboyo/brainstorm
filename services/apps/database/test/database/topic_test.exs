@@ -42,4 +42,24 @@ defmodule Database.TopicTest do
     end
   end
 
+  describe "Given a persistent topic" do
+    setup :create_persistent_topic
+
+    test "Topic.delete/1 deletes the topic", %{ topic: topic } do
+      Topic.delete(topic.id)
+
+      assert nil == Database.Document.fetch(topic.id)
+    end
+
+    test "Topic.delete/1 returns :ok", %{ topic: topic } do
+      assert :ok == Topic.delete(topic.id)
+    end
+  end
+
+  describe "Given a nonexistant topic" do
+    test "Topic.delete/1 return :enoent" do
+      assert :enoent == Topic.delete(Database.Id.new())
+    end
+  end
+
 end

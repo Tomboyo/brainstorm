@@ -34,11 +34,7 @@ defmodule Rest.Router do
          topics          <- @topic_db.find(search),
          { :ok, json }   <- Jason.encode(topics)
     do
-      if Enum.empty?(topics) do
-        send_resp(conn, 404, "")
-      else
-        send_resp(conn, 200, json)
-      end
+      send_resp(conn, 200, json)
     else
       error -> todo_real_error_handling(conn, error)
     end
@@ -50,6 +46,21 @@ defmodule Rest.Router do
     case Map.fetch(map, key) do
       { :ok, value } -> { :ok, value }
       :error         -> { :error, "#{key} not found" }
+    end
+  end
+
+  delete "/topic/:id" do
+    with { :ok, params } <- param(conn, :params),
+         { :ok, id     } <- param(params, "id"),
+         id              <- Id.new(id)
+    do
+      case @topic_db.delete(id) do
+        :ok               -> send_resp(conn, 204, "")
+        :enoent           -> send_resp(conn, 404, "")
+        { :error, error } -> todo_real_error_handling(conn, error)
+      end
+    else
+      error -> todo_real_error_handling(conn, error)
     end
   end
 

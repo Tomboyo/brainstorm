@@ -35,6 +35,10 @@ module Brainstorm::CliTest
       assert_equal Brainstorm::VERSION, @cli.call([ 'version' ])
     end
 
+    it '`find-topics <unmatched term>` finds an empty set' do
+      assert_equal Set.new(), @cli.call([ 'find-topics', 'notopic' ])
+    end
+
     describe 'Given a topic id' do
       before do
         @topic_a_id = @cli.call([ 'create-topic', 'Topic A' ])
@@ -43,7 +47,7 @@ module Brainstorm::CliTest
       it '`delete-topic <topic-id>` deletes the topic' do
         @cli.call([ 'delete-topic', @topic_a_id ])
 
-        assert_equal [], @cli.call([ 'find-topics', 'Topic A' ])
+        assert_equal Set.new(), @cli.call([ 'find-topics', 'Topic A' ])
       end
     end
 

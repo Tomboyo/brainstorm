@@ -67,4 +67,18 @@ defmodule Database.Topic do
     end
   end
 
+  @callback delete(Id.t) :: :ok | :enoent | { :error, any }
+  @delete """
+  MATCH (n:topic { id: $id })
+  DETACH DELETE (n)
+  """
+  def delete(%Id{} = id) do
+    Database.query(@delete, %{ "id" => to_string(id) })
+    |> case do
+      { :ok, %{ stats: %{ "nodes-deleted" => 1 }}} -> :ok
+      { :ok, %{ stats: nil }} -> :enoent
+      { :error, cause } -> { :error, cause }
+    end
+  end
+
 end
