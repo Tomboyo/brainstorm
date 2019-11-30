@@ -1,5 +1,5 @@
 defmodule Database.Topic do
-  alias Database.Id
+  alias Database.{ Id, Lucene }
 
   @type t :: __MODULE__
 
@@ -57,7 +57,7 @@ defmodule Database.Topic do
   RETURN node.id as id, node.label as label
   """
   def find(search_term) when is_binary(search_term) do
-    Database.query(@find, %{ "search_term" => search_term })
+    Database.query(@find, %{ "search_term" => Lucene.escape(search_term) })
     |> case do
       { :ok, topics } ->
         for %{ "id" => id, "label" => label } <- topics,
