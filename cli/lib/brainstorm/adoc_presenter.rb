@@ -21,6 +21,20 @@ class Brainstorm::AdocPresenter
       .join("\n") << "\n"
   end
 
+  def delete_topic(response)
+    case response
+    when :ok
+      'Topic deleted.'
+    when :enoent
+      'Topic not found.'
+    when StandardError
+      e = response
+      "Encountered an error: `#{e}`#{e.backtrace&.join("\n")&.<<("\n")}"
+    else
+      "Unexpected error: unexpected service response `#{response}`."
+    end
+  end
+
   private
 
   def title(text)

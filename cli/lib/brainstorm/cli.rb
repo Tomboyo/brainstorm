@@ -27,6 +27,8 @@ class Brainstorm::Cli
       create_fact(args)
     when 'find-topics'
       find_topics(args)
+    when 'delete-topic'
+      delete_topic(args)
     end
   end
 
@@ -72,6 +74,16 @@ class Brainstorm::Cli
       search_term = args.first
       topics = @service.find_topics(search_term)
       @presenter.present_topics(topics)
+    end
+  end
+
+  def delete_topic(args)
+    unless args.length == 1
+      error('Invalid arguments')
+    else
+      id = args.first
+      response = @service.delete_topic(id)
+      @presenter.delete_topic(response)
     end
   end
 end

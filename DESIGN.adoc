@@ -101,18 +101,8 @@ _DELETE /topic/:id_
 
 Delete an existing topic.
 
-* `204`: The topic was deleted.
+* `204`: The topic and any associated facts were deleted.
 * `404`: No topic with the given id exists.
-* `409`: One or more facts are associated with the topic, which must be deleted
-first before the topic can be removed. The response body contains a json list of
-those facts' ids.
-+
-----
-[
-  <id>,
-  ...
-]
-----
 
 ===== Find Topic
 _GET /topic?search=<search>_

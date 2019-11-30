@@ -9,6 +9,12 @@ require 'json'
 class Brainstorm::Service
   include Brainstorm::Logging
 
+  class ServiceError < StandardError
+    def initialize(code)
+      super("Unexpected response code `#{code}`")
+    end
+  end
+
   def initialize(options)
     host = options["host"]
     port = options["port"]
@@ -51,6 +57,20 @@ class Brainstorm::Service
       .yield_self { |x| Set.new(x) }
   rescue Exception => e
     log_error("Failed to search for topics", e)
+  end
+
+  def delete_topic(id)
+    code = HTTP.delete("#{@base}/topic/#{id}").code
+    case code
+    when 204
+      :ok
+    when 404
+      :enoent
+    else
+      new ServiceError(code)
+    end
+  rescue StandardError => e
+    e
   end
 
 end

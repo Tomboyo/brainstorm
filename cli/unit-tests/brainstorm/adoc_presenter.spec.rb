@@ -17,6 +17,26 @@ module Brainstorm::AdocPresenterTest
       @presenter = Brainstorm::AdocPresenter.new
     end
 
+    describe '#delete_topic' do
+      it 'Confirms successful deletion' do
+        assert_equal 'Topic deleted.', @presenter.delete_topic(:ok)
+      end
+
+      it 'Informs the user when the topic was not found' do
+        assert_equal 'Topic not found.', @presenter.delete_topic(:enoent)
+      end
+
+      it 'Renders errors' do
+        assert_includes @presenter.delete_topic(StandardError.new("message")),
+          "message"
+      end
+
+      it 'Renders a default error for unexpected values' do
+        assert_equal 'Unexpected error: unexpected service response `woops`.',
+          @presenter.delete_topic("woops")
+      end
+    end
+
     describe '#present_topics' do
       before do
         topic_a = Topic.new('topic-a-id', 'Topic A')
