@@ -32,7 +32,7 @@ defmodule Database.DocumentTest do
   describe "Given a topic related to itself by a fact" do
     setup do
       topic = persistent_topic("Topic A")
-      fact = Fact.new([ topic.id ], "fact content")
+      fact = Fact.new("fact content", [ topic.id ])
       :ok = Fact.persist(fact)
 
       [ topic: topic, fact: fact ]
@@ -57,7 +57,7 @@ defmodule Database.DocumentTest do
       topic_a = persistent_topic("Topic A")
       topic_b = persistent_topic("Topic B")
 
-      fact = Fact.new([ topic_a.id, topic_b.id ], "Fact F")
+      fact = Fact.new("Fact F", [ topic_a.id, topic_b.id ])
       :ok = Fact.persist(fact)
 
       [ topic_a: topic_a, topic_b: topic_b, fact: fact ]

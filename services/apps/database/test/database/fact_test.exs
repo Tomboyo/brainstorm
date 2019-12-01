@@ -13,7 +13,7 @@ defmodule Database.FactTest do
   describe "given a transient fact" do
     setup :setup_persistent_topic
     setup %{ topic: topic } do
-      [ fact: Fact.new([ topic.id ], "transient fact content") ]
+      [ fact: Fact.new("transient fact content", [ topic.id ]) ]
     end
 
     test "Fact.persist returns :ok", %{

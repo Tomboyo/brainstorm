@@ -7,10 +7,10 @@ defmodule Database.Fact do
     topics:  [ Database.Id.t ] | [ Database.Topic.t ]
   }
 
-  @enforce_keys [ :id, :topics, :content ]
-  defstruct [ :id, :topics, :content ]
+  @enforce_keys [ :id, :content, :topics ]
+  defstruct [ :id, :content, :topics ]
 
-  @callback new([ Id.t ], String.t) :: t
+  @callback new(String.t, [ Id.t ]) :: t
   @doc """
   Create a fact for the given topics with the given content and a new Id. Facts
   may relate one or two nodes; three or more is unsupported.
@@ -18,7 +18,7 @@ defmodule Database.Fact do
   ## Examples
 
       iex> topic_id = Database.Id.new("topic-id")
-      iex> fact = Database.Fact.new([ topic_id ], "fact content")
+      iex> fact = Database.Fact.new("fact content", [ topic_id ])
       iex> fact.topics == [ topic_id ]
       true
       iex> fact.content == "fact content"
@@ -26,7 +26,7 @@ defmodule Database.Fact do
       iex> fact.id |> Database.Id.is_id()
       true
   """
-  def new(topics, content) do
+  def new(content, topics) do
     %__MODULE__{
       id: Id.new(),
       topics: topics,
