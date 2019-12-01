@@ -1,7 +1,10 @@
 defmodule Database.Topic do
   alias Database.{ Id, Lucene }
 
-  @type t :: __MODULE__
+  @type t :: %__MODULE__{
+    id:    Database.Id.t,
+    label: String.t
+  }
 
   @enforce_keys [:id, :label]
   defstruct [ :id, :label ]

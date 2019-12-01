@@ -9,7 +9,9 @@ defmodule Services.MixProject do
     releases: releases()
   ]
 
-  defp deps, do: []
+  defp deps, do: [
+    { :dialyxir, "~> 1.0.0-rc.3" }
+  ]
 
   defp releases, do: [
     default: [

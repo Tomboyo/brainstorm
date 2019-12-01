@@ -2,7 +2,7 @@ defmodule Database.Fact do
   alias Database.Id
 
   @type t :: %__MODULE__{
-    id:      Datbase.Id.t,
+    id:      Database.Id.t,
     content: String.t,
     topics:  [ Database.Id.t ] | [ Database.Topic.t ]
   }
@@ -37,7 +37,7 @@ defmodule Database.Fact do
   @callback new(
     id      :: String.t,
     content :: String.t,
-    topics  :: [ Topic.t ]
+    topics  :: [ Database.Topic.t ]
   ) :: t
   def new(id, content, topics)
   when is_binary(id) and is_binary(content)

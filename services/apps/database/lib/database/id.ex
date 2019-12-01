@@ -1,6 +1,6 @@
 defmodule Database.Id do
 
-  @opaque t :: __MODULE__
+  @opaque t :: %__MODULE__{}
 
   @enforce_keys [ :value ]
   defstruct [ :value ]

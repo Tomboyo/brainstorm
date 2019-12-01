@@ -1,11 +1,15 @@
 defmodule Database.Application do
   use Application
 
-  @spec start(any, any) :: :ignore | {:error, any} | {:ok, pid}
+  @spec start(any, any) ::
+      { :ok, pid }
+    | { :error, reason :: String.t }
   def start(_type, args) do
     with { :ok, config } <- get_configuration(args)
     do
       Database.start_link(config)
+    else
+      { :error, message } -> { :error, message }
     end
   end
 
