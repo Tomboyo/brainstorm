@@ -16,4 +16,15 @@ defmodule Database.LuceneTest do
     assert "\"or\" \"oR\" \"Or\" \"OR\"" == Lucene.escape("or oR Or OR")
   end
 
+  test "Lucene.escape/1 quotes NOT" do
+    assert "\"not\" \"noT\" \"nOt\" \"nOT\" \"Not\" \"NoT\" \"NOt\" \"NOT\"" ==
+      Lucene.escape("not noT nOt nOT Not NoT NOt NOT")
+  end
+
+  # implicit or queries by use of whitespace (this is 4 or'd terms)
+  test "Lucene.escape/1 creates OR queries from compositions" do
+    assert ~S{title\:\(\+pink \(\~red "AND" \"blue green\"\)\)} ==
+        Lucene.escape(~S{title:(+pink (~red AND "blue green"))})
+  end
+
 end
