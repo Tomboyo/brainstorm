@@ -92,7 +92,7 @@ defmodule Rest.Router do
     with { :ok, params }  <- Map.fetch(conn, :params),
          { :ok, topics }  <- Map.fetch(params, "topics"),
          { :ok, content } <- Map.fetch(params, "content"),
-         fact             <- @fact_db.new(topics, content),
+         fact             <- @fact_db.new(content, topics),
          :ok              <- @fact_db.persist(fact)
     do
       conn

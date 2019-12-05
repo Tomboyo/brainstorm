@@ -23,11 +23,11 @@ defmodule Rest.RouterTest.CreateFactTest do
 
       mock_fact = %Fact{
         id: Id.new("fact-id"),
-        topics: topics,
-        content: content
+        content: content,
+        topics: topics
       }
       Database.FactMock
-      |> expect(:new, fn ^topics, ^content -> mock_fact end)
+      |> expect(:new, fn ^content, ^topics -> mock_fact end)
       |> expect(:persist, fn ^mock_fact -> :ok end)
 
       conn =

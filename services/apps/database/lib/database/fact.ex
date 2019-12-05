@@ -1,16 +1,27 @@
 defmodule Database.Fact do
   alias Database.Id
 
-  @type t :: %__MODULE__{
+  @type t :: transient | persistent
+
+  @type transient :: %__MODULE__{
     id:      Database.Id.t,
     content: String.t,
-    topics:  [ Database.Id.t ] | [ Database.Topic.t ]
+    topics:  [ Database.Id.t ]
+  }
+
+  @type persistent :: %__MODULE__{
+    id:      Database.Id.t,
+    content: String.t,
+    topics:  [ Database.Topic.t ]
   }
 
   @enforce_keys [ :id, :content, :topics ]
   defstruct [ :id, :content, :topics ]
 
-  @callback new(String.t, [ Id.t ]) :: t
+  @callback new(
+    content :: String.t,
+    topics  :: [ Id.t ]
+  ) :: transient
   @doc """
   Create a fact for the given topics with the given content and a new Id. Facts
   may relate one or two nodes; three or more is unsupported.
@@ -29,8 +40,8 @@ defmodule Database.Fact do
   def new(content, topics) do
     %__MODULE__{
       id: Id.new(),
-      topics: topics,
-      content: content
+      content: content,
+      topics: topics
     }
   end
 
@@ -38,7 +49,7 @@ defmodule Database.Fact do
     id      :: String.t,
     content :: String.t,
     topics  :: [ Database.Topic.t ]
-  ) :: t
+  ) :: persistent
   def new(id, content, topics)
   when is_binary(id) and is_binary(content)
   do
