@@ -1,15 +1,13 @@
 defmodule Database.Fact do
   alias Database.Id
 
-  @type t :: transient | persistent
-
-  @type transient :: %__MODULE__{
+  @opaque t :: transient | persistent
+  @opaque transient :: %__MODULE__{
     id:      Database.Id.t,
     content: String.t,
     topics:  [ Database.Id.t ]
   }
-
-  @type persistent :: %__MODULE__{
+  @opaque persistent :: %__MODULE__{
     id:      Database.Id.t,
     content: String.t,
     topics:  [ Database.Topic.t ]

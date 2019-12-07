@@ -10,7 +10,7 @@ defmodule Database.Document do
 
   alias Database.{ Fact, Id, Topic }
 
-  @type t :: %__MODULE__{
+  @opaque t :: %__MODULE__{
     topic: Database.Topic.t,
     facts: MapSet.t(Database.Fact.t)
   }
@@ -53,7 +53,7 @@ defmodule Database.Document do
   end
 
   defp to_document(id, record) do
-    topic = %Topic{ id: id, label: record["topic.label"] }
+    topic = Topic.from(id, record["topic.label"])
 
     facts = record["facts"]
       |> Stream.map(fn [ f_id, f_content, t_id, t_label ] ->

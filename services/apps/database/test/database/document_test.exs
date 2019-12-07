@@ -23,9 +23,7 @@ defmodule Database.DocumentTest do
     test "fetch/1 returns a document generated from the topic", %{
       topic: topic
     } do
-      assert %Document{
-        topic: topic
-      } = Document.fetch(topic.id)
+      assert topic == Document.fetch(topic.id).topic
     end
   end
 
@@ -43,11 +41,7 @@ defmodule Database.DocumentTest do
       fact: fact
     } do
       assert Document.fetch(topic.id).facts == MapSet.new([
-        %Fact{
-          id:      fact.id,
-          content: fact.content,
-          topics:  MapSet.new([ topic ])
-        }
+        Fact.from(fact.id, fact.content, [ topic ])
       ])
     end
   end
@@ -69,11 +63,7 @@ defmodule Database.DocumentTest do
       fact: fact
     } do
       assert Document.fetch(topic_a.id).facts == MapSet.new([
-        %Fact{
-          id: fact.id,
-          content: fact.content,
-          topics: MapSet.new([ topic_a, topic_b ])
-        }
+        Fact.from(fact.id, fact.content, [ topic_a, topic_b ])
       ])
     end
 
@@ -83,11 +73,7 @@ defmodule Database.DocumentTest do
       fact: fact
     } do
       assert Document.fetch(topic_b.id).facts == MapSet.new([
-        %Fact{
-          id: fact.id,
-          content: fact.content,
-          topics: MapSet.new([ topic_a, topic_b ])
-        }
+        Fact.from(fact.id, fact.content, [ topic_a, topic_b ])
       ])
     end
   end

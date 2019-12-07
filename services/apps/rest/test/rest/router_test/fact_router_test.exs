@@ -4,7 +4,7 @@ defmodule Rest.FactRouterTest do
   use Database.Case
   import Mox
   alias Rest.Router
-  alias Database.{ Fact, Id }
+  alias Database.Fact
 
   @opts Router.init([])
 
@@ -17,12 +17,7 @@ defmodule Rest.FactRouterTest do
         "content" => content
       })
 
-      mock_fact = %Fact{
-        id: Id.from("fact-id") ,
-        content: topics,
-        topics: content
-      }
-
+      mock_fact = Fact.new(content, topics)
       Database.FactMock
       |> expect(:new, fn ^content, ^topics -> mock_fact end)
       |> expect(:persist, fn ^mock_fact -> :ok end)

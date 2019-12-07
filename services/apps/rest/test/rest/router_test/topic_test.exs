@@ -49,7 +49,7 @@ defmodule Rest.RouterTest.TopicTest do
     setup do
       label = "my label"
 
-      topic = %Topic{ id: Id.from("mock topic id"), label: label }
+      topic = Topic.from(Id.from("mock topic id"), label)
       Database.TopicMock
       |> expect(:new, fn ^label -> topic end)
       |> expect(:persist, fn ^topic -> :ok end)
