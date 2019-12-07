@@ -15,16 +15,16 @@ defmodule Database.TopicTest do
     setup :create_persistent_topic
 
     test "returns an empty set when there are no matched topics" do
-      assert MapSet.new() == Topic.find("matches-nothing")
+      assert { :ok, MapSet.new() } == Topic.find("matches-nothing")
     end
 
     test "returns a map set of matched results", %{ topic: topic } do
-      assert MapSet.new([ topic ]) == Topic.find("label")
+      assert { :ok, MapSet.new([ topic ]) } == Topic.find("label")
     end
 
     test "escapes Apache Lucene query special characters" do
       # This will break Apache Lucene's grammar if not quoted correctly
-      assert MapSet.new([]) == Topic.find(")")
+      assert { :ok, MapSet.new([]) } == Topic.find(")")
     end
   end
 

@@ -26,7 +26,7 @@ defmodule Rest.TopicRouter do
   get "/" do
     with { :ok, params } <- param(conn, :params),
          { :ok, search } <- param(params, "search"),
-         topics          <- @topic_db.find(search),
+         { :ok, topics } <- @topic_db.find(search),
          { :ok, json }   <- Jason.encode(topics)
     do
       send_resp(conn, 200, json)

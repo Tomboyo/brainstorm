@@ -63,9 +63,10 @@ defmodule Database.Topic do
     Database.query(@find, %{ "search_term" => Lucene.escape(search_term) })
     |> case do
       { :ok, topics } ->
-        for %{ "id" => id, "label" => label } <- topics,
+        result = for %{ "id" => id, "label" => label } <- topics,
           into: MapSet.new(),
           do: %__MODULE__{ id: Id.from(id) , label: label }
+        { :ok, result }
       { :error, cause } -> { :error, cause }
     end
   end
