@@ -38,7 +38,7 @@ defmodule Rest.TopicRouter do
   delete "/:id" do
     with { :ok, params } <- param(conn, :params),
          { :ok, id     } <- param(params, "id"),
-         id              <- Id.new(id)
+         id              <- Id.from(id)
     do
       case @topic_db.delete(id) do
         :ok               -> send_resp(conn, 204, "")

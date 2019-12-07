@@ -33,7 +33,7 @@ defmodule Database.Topic do
   def new(id, label)
   when is_binary(id) and is_binary(label)
   do
-    %__MODULE__{ id: Database.Id.new(id), label: label }
+    %__MODULE__{ id: Database.Id.from(id) , label: label }
   end
 
   @callback persist(__MODULE__.t) :: :ok | { :error, any }
@@ -65,7 +65,7 @@ defmodule Database.Topic do
       { :ok, topics } ->
         for %{ "id" => id, "label" => label } <- topics,
           into: MapSet.new(),
-          do: %__MODULE__{ id: Id.new(id), label: label }
+          do: %__MODULE__{ id: Id.from(id) , label: label }
       { :error, cause } -> { :error, cause }
     end
   end

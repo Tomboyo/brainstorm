@@ -14,7 +14,7 @@ defmodule Rest.DocumentRouter do
   get "/:id" do
     with { :ok, params } <- Map.fetch(conn, :params),
          { :ok, id     } <- Map.fetch(params, "id"),
-         id              <- Id.new(id),
+         id              <- Id.from(id) ,
          # TODO: Needs to be { :ok, value } tuple or else we can bleed an error.
          document_or_nil <- @document_db.fetch(id),
          { :ok, body }   <- encode(document_or_nil)

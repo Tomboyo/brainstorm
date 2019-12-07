@@ -18,7 +18,7 @@ defmodule Rest.FactRouterTest do
       })
 
       mock_fact = %Fact{
-        id: Id.new("fact-id"),
+        id: Id.from("fact-id") ,
         content: topics,
         topics: content
       }

@@ -1,6 +1,8 @@
 defmodule Database.Id do
 
-  @opaque t :: %__MODULE__{}
+  @opaque t :: persistent | transient
+  @opaque persistent :: %__MODULE__{}
+  @opaque transient  :: %__MODULE__{}
 
   @enforce_keys [ :value ]
   defstruct [ :value ]
@@ -15,6 +17,7 @@ defmodule Database.Id do
       false
 
   """
+  @spec new() :: transient
   def new() do
     %__MODULE__{
       value: UUID.uuid4()
@@ -28,11 +31,12 @@ defmodule Database.Id do
   ## Examples
 
       iex> id = Database.Id.new()
-      iex> id == to_string(id) |> Database.Id.new()
+      iex> id == to_string(id) |> Database.Id.from()
       true
 
   """
-  def new(id) when is_binary(id), do: %__MODULE__{ value: id }
+  @spec from(String.t) :: persistent
+  def from(id) when is_binary(id), do: %__MODULE__{ value: id }
 
   @doc """
   Returns true when the argument is an id struct or a stringified id.

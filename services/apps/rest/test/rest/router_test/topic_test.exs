@@ -11,7 +11,7 @@ defmodule Rest.RouterTest.TopicTest do
 
   describe "Given an existing topic id to DELETE /topic/:id" do
     setup do
-      expected_id = Id.new("topic-id")
+      expected_id = Id.from("topic-id")
       Database.TopicMock
       |> expect(:delete, fn ^expected_id -> :ok end)
 
@@ -29,7 +29,7 @@ defmodule Rest.RouterTest.TopicTest do
 
   describe "Given a nonexistant topic id to DELETE /topic/:id" do
     setup do
-      expected_id = Id.new("topic-id")
+      expected_id = Id.from("topic-id")
       Database.TopicMock
       |> expect(:delete, fn ^expected_id -> :enoent end)
 
@@ -49,7 +49,7 @@ defmodule Rest.RouterTest.TopicTest do
     setup do
       label = "my label"
 
-      topic = %Topic{ id: Id.new("mock topic id"), label: label }
+      topic = %Topic{ id: Id.from("mock topic id"), label: label }
       Database.TopicMock
       |> expect(:new, fn ^label -> topic end)
       |> expect(:persist, fn ^topic -> :ok end)

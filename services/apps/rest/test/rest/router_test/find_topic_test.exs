@@ -11,7 +11,7 @@ defmodule Rest.RouterTest.FindTopicTest do
 
   describe "Given a search query to GET /topic" do
     setup do
-      topics = MapSet.new([ %Topic{ id: Id.new("topic id"), label: "label" } ])
+      topics = MapSet.new([ %Topic{ id: Id.from("topic id"), label: "label" } ])
       Database.TopicMock |> expect(:find, fn "search term" -> topics end)
 
       conn =

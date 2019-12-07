@@ -28,7 +28,7 @@ defmodule Database.Fact do
 
   ## Examples
 
-      iex> topic_id = Database.Id.new("topic-id")
+      iex> topic_id = Database.Id.from("topic-id")
       iex> fact = Database.Fact.new("fact content", [ topic_id ])
       iex> fact.topics == [ topic_id ]
       true
@@ -54,7 +54,7 @@ defmodule Database.Fact do
   when is_binary(id) and is_binary(content)
   do
     %__MODULE__{
-      id:      Database.Id.new(id),
+      id:      Database.Id.from(id) ,
       content: content,
       topics:  MapSet.new(topics)
     }
