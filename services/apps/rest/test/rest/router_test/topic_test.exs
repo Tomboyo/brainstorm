@@ -1,9 +1,7 @@
 defmodule Rest.RouterTest.TopicTest do
   use ExUnit.Case
   use Plug.Test
-
   import Mox
-
   alias Rest.Router
   alias Database.{ Id, Topic }
 
