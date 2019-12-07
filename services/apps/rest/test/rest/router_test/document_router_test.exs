@@ -3,13 +3,13 @@ defmodule Rest.DocumentRouterTest do
   use Plug.Test
   import Mox
   alias Rest.Router
-  alias Database.{ Document, Fact, Topic }
+  alias Database.{ Document, Fact, Id, Topic }
 
   @opts Router.init([])
 
   describe "When :id is a persistent topic id, GET /document/:id" do
     setup do
-      topic = Topic.new("topic-id", "topic label")
+      topic = Topic.from(Id.from("topic-id"), "topic label")
       fact = Fact.new("fact-id", "fact content", [ topic ])
       document = Document.new(topic, [ fact ])
 

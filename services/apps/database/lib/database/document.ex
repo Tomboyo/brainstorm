@@ -6,8 +6,6 @@ defmodule Database.Document do
   This structure is meant to invoke the concept of a paper document, where the
   document root is the subject matter of the document and its content is the
   accumulation of those facts associated with the document root.
-
-  This is a product type of constituents Fact and Topic.
   """
 
   alias Database.{ Fact, Id, Topic }
@@ -59,7 +57,8 @@ defmodule Database.Document do
 
     facts = record["facts"]
       |> Stream.map(fn [ f_id, f_content, t_id, t_label ] ->
-          Fact.new(f_id, f_content, [ topic, Topic.new(t_id, t_label) ])
+          topics = [ topic, Topic.from(Id.from(t_id), t_label) ]
+          Fact.new(f_id, f_content, topics)
         end)
       |> Enum.into(MapSet.new())
 

@@ -1,15 +1,17 @@
 defmodule Database.Topic do
   alias Database.{ Id, Lucene }
 
-  @type t :: %__MODULE__{
+  @opaque t :: persistent | transient
+  @opaque persistent :: %__MODULE__{
     id:    Database.Id.t,
     label: String.t
   }
+  @opaque transient :: persistent
 
   @enforce_keys [:id, :label]
   defstruct [ :id, :label ]
 
-  @callback new(String.t) :: __MODULE__.t
+  @callback new(String.t) :: transient
   @doc """
   Create a new topic with the given label and a new id.
 
@@ -26,14 +28,12 @@ defmodule Database.Topic do
     label: label
   }
 
-  @callback new(
-    id    :: String.t,
+  @callback from(
+    id    :: Database.Id.t,
     label :: String.t
-  ) :: t
-  def new(id, label)
-  when is_binary(id) and is_binary(label)
-  do
-    %__MODULE__{ id: Database.Id.from(id) , label: label }
+  ) :: persistent
+  def from(id = %Id{}, label) when is_binary(label) do
+    %__MODULE__{ id: id , label: label }
   end
 
   @callback persist(__MODULE__.t) :: :ok | { :error, any }
@@ -51,7 +51,7 @@ defmodule Database.Topic do
     end
   end
 
-  @callback find(String.t) :: MapSet.t(__MODULE__.t)
+  @callback find(String.t) :: MapSet.t(persistent)
   @find """
   CALL db.index.fulltext.queryNodes(
     "topic_label",
