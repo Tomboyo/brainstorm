@@ -165,19 +165,31 @@ must contain an application/json header and a JSON body in the following format:
 
 ----
 {
-  "topics": [ <id>, ... ],
+  "topics": [ <id | search term>, ... ],
   "content": <content>
 }
 ----
 
-The "topics" list must contain at least one id. The "content" field cannot be
-empty.
+The "topics" list must contain at least one id or search term. The "content"
+field cannot be empty.
 
 * `201`: The fact was created. The response body contains the id of the new
 fact:
 +
 ----
 <id>
+----
+
+* `200`: The fact could not be created because one or more search terms could
+not resolve to unique topic ids. The response body contains up to three
+candidates for each such term:
++
+----
+{
+  "search term 1": [ <topic>, ... ],
+  "search term 2": [ <topic>, ... ]
+  ...
+}
 ----
 
 * `400`: The request body is invalid.
