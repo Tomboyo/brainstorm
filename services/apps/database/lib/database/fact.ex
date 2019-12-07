@@ -45,16 +45,16 @@ defmodule Database.Fact do
     }
   end
 
-  @callback new(
-    id      :: String.t,
+  @callback from(
+    id      :: Database.Id.t,
     content :: String.t,
     topics  :: [ Database.Topic.t ]
   ) :: persistent
-  def new(id, content, topics)
-  when is_binary(id) and is_binary(content)
+  def from(id = %Id{}, content, topics)
+  when is_binary(content)
   do
     %__MODULE__{
-      id:      Database.Id.from(id) ,
+      id:      id,
       content: content,
       topics:  MapSet.new(topics)
     }

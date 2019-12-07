@@ -58,7 +58,7 @@ defmodule Database.Document do
     facts = record["facts"]
       |> Stream.map(fn [ f_id, f_content, t_id, t_label ] ->
           topics = [ topic, Topic.from(Id.from(t_id), t_label) ]
-          Fact.new(f_id, f_content, topics)
+          Fact.from(Id.from(f_id), f_content, topics)
         end)
       |> Enum.into(MapSet.new())
 

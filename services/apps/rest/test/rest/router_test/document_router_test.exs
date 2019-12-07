@@ -10,7 +10,7 @@ defmodule Rest.DocumentRouterTest do
   describe "When :id is a persistent topic id, GET /document/:id" do
     setup do
       topic = Topic.from(Id.from("topic-id"), "topic label")
-      fact = Fact.new("fact-id", "fact content", [ topic ])
+      fact = Fact.from(Id.from("fact-id"), "fact content", [ topic ])
       document = Document.new(topic, [ fact ])
 
       topic_id = topic.id
