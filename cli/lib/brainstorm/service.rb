@@ -27,6 +27,7 @@ class Brainstorm::Service
       .to_s
   rescue Exception => e
     log_error("Failed to create topic with label `#{label}`", e)
+    raise e
   end
 
   def fetch_document(id)
@@ -37,6 +38,7 @@ class Brainstorm::Service
       .yield_self { |x| Brainstorm::Model::Document.from_hash(x) }
   rescue Exception => e
     log_error("Failed to fetch id `#{id}`", e)
+    raise e
   end
 
   def create_fact(ids, content)
@@ -44,8 +46,10 @@ class Brainstorm::Service
         json: { 'topics' => ids, 'content' => content }})
       .body
       .to_s
+      .yield_self { |x| JSON.parse(x) }
   rescue Exception => e
     log_error("Failed to create fact", e)
+    raise e
   end
 
   def find_topics(search_term)
@@ -57,6 +61,7 @@ class Brainstorm::Service
       .yield_self { |x| Set.new(x) }
   rescue Exception => e
     log_error("Failed to search for topics", e)
+    raise e
   end
 
   def delete_topic(id)
