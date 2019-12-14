@@ -71,6 +71,13 @@ defmodule Database.Topic do
     end
   end
 
+  @callback resolve_ids(String.t) ::
+      { :total, [ String.t ]}
+    | { :partial, %{ String.t => MapSet.t(t) }}
+  def resolve_ids(terms) do
+    { :total, terms }
+  end
+
   @callback delete(Id.t) :: :ok | :enoent | { :error, any }
   @delete """
   MATCH (n:topic { id: $id })
