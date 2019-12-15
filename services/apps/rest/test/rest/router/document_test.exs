@@ -1,4 +1,4 @@
-defmodule Rest.DocumentRouterTest do
+defmodule Rest.Router.DocumentTest do
   use ExUnit.Case
   use Plug.Test
   import Mox

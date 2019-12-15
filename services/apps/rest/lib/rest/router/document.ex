@@ -1,4 +1,4 @@
-defmodule Rest.DocumentRouter do
+defmodule Rest.Router.Document do
   use Plug.Router
   alias Database.Id
 

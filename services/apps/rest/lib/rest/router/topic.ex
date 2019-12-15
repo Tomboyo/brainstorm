@@ -1,4 +1,4 @@
-defmodule Rest.TopicRouter do
+defmodule Rest.Router.Topic do
   use Plug.Router
   alias Database.Id
 

@@ -1,4 +1,4 @@
-defmodule Rest.RouterTest.TopicTest do
+defmodule Rest.Router.TopicTest do
   use ExUnit.Case
   use Plug.Test
   import Mox
@@ -73,6 +73,32 @@ defmodule Rest.RouterTest.TopicTest do
       conn: conn
     } do
       assert 201 == conn.status
+    end
+  end
+
+  describe "GET /topic" do
+    setup do
+      topics = MapSet.new([ Topic.from(Id.from("topic id"), "label") ])
+      Database.TopicMock |> expect(:find,
+        fn "search term" -> { :ok, topics } end)
+
+      conn =
+        conn(:get, "topic?search=search%20term", nil)
+        |> Router.call(@opts)
+
+      [ conn: conn, topics: topics ]
+    end
+
+    test "it returns a 200", %{ conn: conn } do
+      assert 200 == conn.status
+    end
+
+    test "it returns a json list of matching topics", %{
+      conn: conn,
+      topics: topics
+    } do
+      { :ok, json } = Jason.encode(topics)
+      assert json == conn.resp_body
     end
   end
 end

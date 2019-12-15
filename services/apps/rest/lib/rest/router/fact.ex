@@ -1,4 +1,4 @@
-defmodule Rest.FactRouter do
+defmodule Rest.Router.Fact do
   use Plug.Router
 
   @topic_db  Application.get_env(:rest, :topic_database, Database.Topic)

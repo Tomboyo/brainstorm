@@ -1,4 +1,4 @@
-defmodule Rest.FactRouterTest do
+defmodule Rest.Router.FactTest do
   use ExUnit.Case
   use Plug.Test
   use Database.Case
