@@ -3,13 +3,11 @@ defmodule Rest.Router.TopicTest do
   use Plug.Test
   import Mox
   alias Rest.Router
-  alias Database.{ Id, Topic }
+  alias Database.Id
 
   @opts Router.init([])
 
-  setup :verify_on_exit!
-
-  describe "Given an existing topic id to DELETE /topic/:id" do
+  describe "DELETE /:id (given an existing topic id)" do
     setup do
       expected_id = Id.from("topic-id")
       Database.TopicMock
@@ -22,12 +20,16 @@ defmodule Rest.Router.TopicTest do
       [ conn: conn ]
     end
 
+    test "deletes the topic with the given id" do
+      Mox.verify!
+    end
+
     test "returns 204", %{ conn: conn } do
       assert 204 == conn.status
     end
   end
 
-  describe "Given a nonexistant topic id to DELETE /topic/:id" do
+  describe "DELETE /:id (given a nonexistant topic id)" do
     setup do
       expected_id = Id.from("topic-id")
       Database.TopicMock
@@ -40,33 +42,46 @@ defmodule Rest.Router.TopicTest do
       [ conn: conn ]
     end
 
+    test "finds no topics to delete" do
+      Mox.verify!
+    end
+
     test "returns 404", %{ conn: conn } do
       assert 404 == conn.status
     end
   end
 
-  describe "Given a JSON request containing a topic label to POST /topic" do
+  describe "POST / (given a JSON request containing a topic label)" do
     setup do
-      label = "my label"
+      request_body = %{ "label" => "topic label" } |> Jason.encode!
 
-      topic = Topic.from(Id.from("mock topic id"), label)
+      # creates and persists a new topic with the given label
       Database.TopicMock
-      |> expect(:new, fn ^label -> topic end)
-      |> expect(:persist, fn ^topic -> :ok end)
+      |> expect(:new, fn "topic label" -> :mock_topic end)
+      |> expect(:persist, fn :mock_topic -> :ok end)
+
+      # then presents that topic to the client
+      Rest.Presenter.TopicMock
+      |> expect(:present, fn { :post, "/" }, :mock_topic ->
+          { :ok, "presented topic" }
+        end)
 
       conn =
-        conn(:post, "/topic", "{ \"label\": \"#{label}\" }")
+        conn(:post, "/topic", request_body)
         |> put_req_header("content-type", "application/json")
         |> Router.call(@opts)
 
-      [ conn: conn, topic: topic ]
+      [ conn: conn ]
     end
 
-    test "returns the new topic id as a string", %{
-      conn: conn,
-      topic: topic
+    test "creates, persists, and presents a new topic" do
+      Mox.verify!
+    end
+
+    test "returns the presented new topic", %{
+      conn: conn
     } do
-      assert topic.id |> to_string() == conn.resp_body
+      assert "presented topic" == conn.resp_body
     end
 
     test "responds with a 201", %{
@@ -76,29 +91,39 @@ defmodule Rest.Router.TopicTest do
     end
   end
 
-  describe "GET /topic" do
+  describe "GET /" do
     setup do
-      topics = MapSet.new([ Topic.from(Id.from("topic id"), "label") ])
-      Database.TopicMock |> expect(:find,
-        fn "search term" -> { :ok, topics } end)
+      request_url = "topic?search=search%20term"
+
+      # finds topics which match the given search term by label
+      Database.TopicMock
+      |> expect(:find, fn "search term" -> { :ok, :mock_topics } end)
+
+      # then presents those topics to the client
+      Rest.Presenter.TopicMock
+      |> expect(:present, fn { :get, "/" }, :mock_topics ->
+          { :ok, "presented topics" }
+        end)
 
       conn =
-        conn(:get, "topic?search=search%20term", nil)
+        conn(:get, request_url, nil)
         |> Router.call(@opts)
 
-      [ conn: conn, topics: topics ]
+      [ conn: conn ]
     end
 
-    test "it returns a 200", %{ conn: conn } do
+    test "finds and presents topics that match the given search term" do
+      Mox.verify!
+    end
+
+    test "returns a 200", %{ conn: conn } do
       assert 200 == conn.status
     end
 
-    test "it returns a json list of matching topics", %{
+    test "returns the presented topics", %{
       conn: conn,
-      topics: topics
     } do
-      { :ok, json } = Jason.encode(topics)
-      assert json == conn.resp_body
+      assert "presented topics" == conn.resp_body
     end
   end
 end

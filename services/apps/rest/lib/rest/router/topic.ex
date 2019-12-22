@@ -2,8 +2,8 @@ defmodule Rest.Router.Topic do
   use Plug.Router
   alias Database.Id
 
-  @topic_db Application.get_env(
-    :rest, :topic_database, Database.Topic)
+  @topic_db Application.get_env(:rest, :topic_database, Database.Topic)
+  @presenter Application.get_env(:rest, :topic_presenter, Rest.Presenter.Topic)
 
   plug :match
   plug Plug.Parsers,
@@ -15,9 +15,10 @@ defmodule Rest.Router.Topic do
     with { :ok, params } <- Map.fetch(conn, :body_params),
          { :ok, label  } <- Map.fetch(params, "label"),
          topic           <- @topic_db.new(label),
-         :ok             <- @topic_db.persist(topic)
+         :ok             <- @topic_db.persist(topic),
+         { :ok, body }   <- @presenter.present({ :post, "/" }, topic)
     do
-      send_resp(conn, 201, topic.id |> to_string())
+      send_resp(conn, 201, body)
     else
       error -> todo_real_error_handling(conn, error)
     end
@@ -27,9 +28,9 @@ defmodule Rest.Router.Topic do
     with { :ok, params } <- param(conn, :params),
          { :ok, search } <- param(params, "search"),
          { :ok, topics } <- @topic_db.find(search),
-         { :ok, json }   <- Jason.encode(topics)
+         { :ok, body }   <- @presenter.present({ :get, "/" }, topics)
     do
-      send_resp(conn, 200, json)
+      send_resp(conn, 200, body)
     else
       error -> todo_real_error_handling(conn, error)
     end

@@ -12,7 +12,7 @@ defmodule Rest.Router.FactTest do
       topics = [ "id", "search term" ]
       content = "fact content"
 
-      # "Totally" Resolves topic terms to unique topic ids
+      # "totally" resolves topic terms to unique topic ids,
       Database.TopicMock
       |> expect(:resolve_ids, fn ^topics -> { :total, :topic_ids } end)
 
@@ -21,9 +21,11 @@ defmodule Rest.Router.FactTest do
       |> expect(:new, fn ^content, :topic_ids -> :mock_fact end)
       |> expect(:persist, fn :mock_fact -> :ok end)
 
-      # and finally presents the fact id to the client
-      Rest.PresenterMock
-      |> expect(:present_id, fn :mock_fact -> { :ok, "mock id" } end)
+      # and finally presents the fact id to the client.
+      Rest.Presenter.FactMock
+      |> expect(:present, fn { :post, "/" }, :mock_fact ->
+          { :ok, "presented id" }
+        end)
 
       { :ok, json_request } = Jason.encode(%{
         "topics" => topics,
@@ -41,10 +43,10 @@ defmodule Rest.Router.FactTest do
       Mox.verify!()
     end
 
-    test "returns the new fact id in the response body", %{
+    test "returns the presented new fact id in the response body", %{
       conn: conn
     } do
-      assert "mock id" == conn.resp_body
+      assert "presented id" == conn.resp_body
     end
 
     test "responds with a 201 status code", %{
@@ -66,13 +68,13 @@ defmodule Rest.Router.FactTest do
       topics = [ "vague search term" ]
       content = "fact content"
 
-      # Maps search terms to all topics they partially match
+      # maps search terms to all topics they partially match
       Database.TopicMock
       |> expect(:resolve_ids, fn ^topics -> { :partial, :partial_matches } end)
 
-      # and finally presents the fact id to the client
-      Rest.PresenterMock
-      |> expect(:present, fn :partial_matches ->
+      # and presents the partial matches to the client
+      Rest.Presenter.FactMock
+      |> expect(:present, fn { :post, "/" }, :partial_matches ->
           { :ok, "presented partial matches" }
         end)
 

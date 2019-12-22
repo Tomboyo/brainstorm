@@ -3,7 +3,7 @@ defmodule Rest.Router.Fact do
 
   @topic_db  Application.get_env(:rest, :topic_database, Database.Topic)
   @fact_db   Application.get_env(:rest, :fact_database, Database.Fact)
-  @presenter Application.get_env(:rest, :presenter, Rest.Presenter.Json)
+  @presenter Application.get_env(:rest, :fact_presenter, Rest.Presenter.Fact)
 
   plug :match
   plug Plug.Parsers,
@@ -18,14 +18,14 @@ defmodule Rest.Router.Fact do
          { :total, ids }  <- @topic_db.resolve_ids(topics),
          fact             <- @fact_db.new(content, ids),
          :ok              <- @fact_db.persist(fact),
-         { :ok, body }    <- @presenter.present_id(fact)
+         { :ok, body }    <- @presenter.present({ :post, "/" }, fact)
     do
       conn
       |> put_resp_header("content-type", "application/json")
       |> send_resp(201, body)
     else
       { :partial, map } ->
-        { :ok, body } = @presenter.present(map)
+        { :ok, body } = @presenter.present({ :post, "/" }, map)
 
         conn
         |> put_resp_header("content-type", "application/json")
