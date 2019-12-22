@@ -4,10 +4,11 @@ defmodule Rest.Presenter.FactTest do
 
 
   describe "POST / (when given a fact)" do
-    test "json-encodes the given fact" do
+    test "json-encodes the given fact's id" do
       fact = Database.Fact.from(Database.Id.new(), "content", [ "topic" ])
 
-      assert { :ok, Jason.encode!(fact) } == Fact.present({ :post, "/" }, fact)
+      assert { :ok, Jason.encode!(fact.id) } ==
+        Fact.present({ :post, "/" }, fact)
     end
   end
 
