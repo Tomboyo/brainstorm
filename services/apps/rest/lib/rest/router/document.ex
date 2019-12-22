@@ -4,6 +4,8 @@ defmodule Rest.Router.Document do
 
   @document_db Application.get_env(
     :rest, :document_database, Database.Document)
+  @topic_db Application.get_env(
+    :rest, :topic_database, Database.Topic)
   @presenter Application.get_env(
     :rest, :document_presenter, Rest.Presenter.Document)
 
@@ -13,9 +15,11 @@ defmodule Rest.Router.Document do
     json_decoder: Jason
   plug :dispatch
 
+  # TODO: not an "id" anymore, but a more general identifier (label or id)
   get "/:id" do
     with { :ok, params } <- Map.fetch(conn, :params),
          { :ok, id     } <- Map.fetch(params, "id"),
+         id              <- @topic_db.resolve_id(id),
          id              <- Id.from(id) ,
          # TODO: Needs to be { :ok, value } tuple or else we can bleed an error.
          document_or_nil <- @document_db.fetch(id),

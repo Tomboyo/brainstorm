@@ -3,17 +3,24 @@ defmodule Rest.Router.DocumentTest do
   use Plug.Test
   import Mox
   alias Rest.Router
-  alias Database.{ Document, Fact, Id, Topic }
+  alias Database.Id
 
   @opts Router.init([])
 
   describe "GET /document/:id (when :id is a persistent topic id)" do
     setup do
       id = Id.new()
+      id_str = to_string(id)
 
+      # verifies the body parameter is an id,
+      Database.TopicMock
+      |> expect(:resolve_id, fn ^id_str -> id_str end)
+
+      # then generates a document from the id,
       Database.DocumentMock
       |> expect(:fetch, fn ^id -> :document end)
 
+      # and presents the document.
       Rest.Presenter.DocumentMock
       |> expect(:present, fn { :get, "/:id" }, :document ->
           { :ok, "presented document" }

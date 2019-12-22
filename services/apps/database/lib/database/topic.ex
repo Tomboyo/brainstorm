@@ -89,7 +89,11 @@ defmodule Database.Topic do
     end
   end
 
-  defp resolve_id(term) do
+  @callback resolve_id(String.t) ::
+      String.t
+    | %{ String.t => MapSet.t(Database.Topic.t) }
+    | { :error, term }
+  def resolve_id(term) do
     if Id.is_id(term) do
       term
     else
