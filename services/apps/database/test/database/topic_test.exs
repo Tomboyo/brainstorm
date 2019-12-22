@@ -3,7 +3,7 @@ defmodule Database.TopicTest do
   use Database.Case
   doctest Database.Topic
 
-  alias Database.Topic
+  alias Database.{ Id, Topic }
 
   defp create_persistent_topic(_content) do
     topic = Topic.new("my label")
@@ -59,6 +59,84 @@ defmodule Database.TopicTest do
   describe "Given a nonexistant topic" do
     test "Topic.delete/1 return :enoent" do
       assert :enoent == Topic.delete(Database.Id.new())
+    end
+  end
+
+  describe "resolve_ids/1" do
+    test "resolves id strings to themselves" do
+      ids = [ to_string(Id.new()), to_string(Id.new()) ]
+      assert ids == Topic.resolve_ids(ids) |> elem(1)
+    end
+  end
+
+  describe "resolve_ids/1 (given a search term which matches one topic)" do
+    setup do
+      topic = Topic.new("topic label")
+      topic_id = to_string(topic.id)
+      Topic.persist(topic)
+
+      [ topic_id: topic_id ]
+    end
+
+    test "returns the id of the matched topic", %{
+      topic_id: topic_id
+    } do
+      assert [ topic_id ] == Topic.resolve_ids([ "topic" ]) |> elem(1)
+    end
+  end
+
+  describe "resolve_ids/1 (given a search term which matches several topics)" do
+    setup do
+      topic_a = Topic.new("topic a")
+      topic_b = Topic.new("topic b")
+      :ok = Topic.persist(topic_a)
+      :ok = Topic.persist(topic_b)
+
+      [ topics: [ topic_a, topic_b ]]
+    end
+
+    test "returns a mapping from the search term to matched topics", %{
+      topics: topics
+    } do
+      assert %{ "topic" => MapSet.new(topics) } ==
+        Topic.resolve_ids([ "topic" ])
+        |> elem(1)
+    end
+
+    test "excludes search terms which resolved from the mapping", %{
+      topics: topics
+    } do
+      assert %{ "topic" => MapSet.new(topics) } ==
+        Topic.resolve_ids([ "topic", "topic a" ])
+        |> elem(1)
+    end
+  end
+
+  describe "resolve_ids/1 (when all terms resolve to an id)" do
+    setup do
+      topic = Topic.new("topic label")
+      Topic.persist(topic)
+
+      [ terms: [ to_string(Id.new()), topic.label ]]
+    end
+
+    test "resolves 'totally'", %{ terms: terms } do
+      assert { :total, _ } = Topic.resolve_ids(terms)
+    end
+  end
+
+  describe "resolve_ids/1 (when one or more terms to not resolve to an id)" do
+    setup do
+      topic_a = Topic.new("topic a")
+      topic_b = Topic.new("topic b")
+      :ok = Topic.persist(topic_a)
+      :ok = Topic.persist(topic_b)
+
+      [ terms: [ "topic", to_string(Id.new()) ]]
+    end
+
+    test "resolves 'partially'", %{ terms: terms } do
+      assert { :partial, _ } = Topic.resolve_ids(terms)
     end
   end
 

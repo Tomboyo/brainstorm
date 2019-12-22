@@ -1,5 +1,5 @@
 defmodule Database.Topic do
-  alias Database.{ Id, Lucene }
+  alias Database.{ Id, Lucene, Sets }
 
   @opaque t :: persistent | transient
   @opaque persistent :: %__MODULE__{
@@ -74,8 +74,32 @@ defmodule Database.Topic do
   @callback resolve_ids(String.t) ::
       { :total, [ String.t ]}
     | { :partial, %{ String.t => MapSet.t(t) }}
+    | { :error, term }
   def resolve_ids(terms) do
-    { :total, terms }
+    resolutions = Enum.map(terms, &resolve_id/1)
+    partials =
+      resolutions
+      |> Stream.filter(&is_map/1)
+      |> Enum.reduce(%{}, &Map.merge/2)
+
+    if Enum.empty?(partials) do
+      { :total, resolutions }
+    else
+      { :partial, partials }
+    end
+  end
+
+  defp resolve_id(term) do
+    if Id.is_id(term) do
+      term
+    else
+      case find(term) do
+        { :ok, set } -> if Sets.is_singleton(set),
+          do:   to_string(Sets.get_any(set).id),
+          else: %{ term => set }
+        { :error, cause }  -> { :error, cause }
+      end
+    end
   end
 
   @callback delete(Id.t) :: :ok | :enoent | { :error, any }
