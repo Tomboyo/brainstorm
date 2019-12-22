@@ -61,9 +61,9 @@ class Brainstorm::Cli
     if 1 > args.length
       error('Invalid arguments')
     else
-      ids = args
+      ids_or_search_terms = args
       content = @editor.get_content()
-      @service.create_fact(ids, content)
+      @service.create_fact(ids_or_search_terms, content)
     end
   end
 

@@ -42,9 +42,9 @@ class Brainstorm::Service
     raise e
   end
 
-  def create_fact(ids, content)
+  def create_fact(ids_or_search_terms, content)
     HTTP.post("#{@base}/fact", {
-        json: { 'topics' => ids, 'content' => content }})
+        json: { 'topics' => ids_or_search_terms, 'content' => content }})
       .body
       .to_s
       .yield_self { |x| JSON.parse(x) }
