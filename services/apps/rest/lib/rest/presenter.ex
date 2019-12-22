@@ -7,9 +7,4 @@ defmodule Rest.Presenter do
       { :ok, String.t }
     | { :error, term }
 
-  @spec present(module, route, presentable) :: String.t
-  def present(module, route, presentable) do
-    module.present(route, presentable)
-  end
-
 end

@@ -7,33 +7,33 @@ defmodule Rest.Router.DocumentTest do
 
   @opts Router.init([])
 
-  describe "When :id is a persistent topic id, GET /document/:id" do
+  describe "GET /document/:id (when :id is a persistent topic id)" do
     setup do
-      topic = Topic.from(Id.from("topic-id"), "topic label")
-      fact = Fact.from(Id.from("fact-id"), "fact content", [ topic ])
-      document = Document.new(topic, [ fact ])
+      id = Id.new()
 
-      topic_id = topic.id
       Database.DocumentMock
-      |> expect(:fetch, fn ^topic_id -> document end)
+      |> expect(:fetch, fn ^id -> :document end)
+
+      Rest.Presenter.DocumentMock
+      |> expect(:present, fn { :get, "/:id" }, :document ->
+          { :ok, "presented document" }
+        end)
 
       conn =
-        conn(:get, "/document/#{topic_id}", nil)
+        conn(:get, "/document/#{to_string(id)}", nil)
         |> Router.call(@opts)
 
-      [ conn: conn, document: document ]
+      [ conn: conn ]
     end
 
-    test "generates a document from the given persistent topic id" do
+    test "generates and presents a document from the indicated topic" do
       Mox.verify!()
     end
 
-    test "returns the json-encoded document", %{
-      conn: conn,
-      document: document
+    test "returns the presented document", %{
+      conn: conn
     } do
-      { :ok, expected } = Jason.encode(document)
-      assert expected == conn.resp_body
+      assert "presented document" == conn.resp_body
     end
 
     test "responds with a 200 status code", %{

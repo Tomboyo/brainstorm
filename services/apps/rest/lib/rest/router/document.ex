@@ -4,6 +4,8 @@ defmodule Rest.Router.Document do
 
   @document_db Application.get_env(
     :rest, :document_database, Database.Document)
+  @presenter Application.get_env(
+    :rest, :document_presenter, Rest.Presenter.Document)
 
   plug :match
   plug Plug.Parsers,
@@ -17,7 +19,7 @@ defmodule Rest.Router.Document do
          id              <- Id.from(id) ,
          # TODO: Needs to be { :ok, value } tuple or else we can bleed an error.
          document_or_nil <- @document_db.fetch(id),
-         { :ok, body }   <- encode(document_or_nil)
+         { :ok, body }   <- @presenter.present({ :get, "/:id" }, document_or_nil)
     do
       conn
       |> put_resp_header("content-type", "application/json")
@@ -25,14 +27,6 @@ defmodule Rest.Router.Document do
     else
       error -> todo_real_error_handling(conn, error)
     end
-  end
-
-  defp encode(nil) do
-    raise "not yet implemented!"
-  end
-
-  defp encode(%Database.Document{} = document) do
-    Jason.encode(document)
   end
 
   defp todo_real_error_handling(conn, error) do
