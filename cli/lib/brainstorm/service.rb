@@ -25,6 +25,7 @@ class Brainstorm::Service
     HTTP.post("#{@base}/topic", { json: { "label" => label }})
       .body
       .to_s
+      .yield_self { |x| JSON.parse(x) }
   rescue Exception => e
     log_error("Failed to create topic with label `#{label}`", e)
     raise e
