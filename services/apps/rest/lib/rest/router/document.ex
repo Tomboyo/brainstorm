@@ -1,5 +1,6 @@
 defmodule Rest.Router.Document do
   use Plug.Router
+  require Logger
   alias Database.Id
 
   @document_db Application.get_env(
@@ -15,27 +16,21 @@ defmodule Rest.Router.Document do
     json_decoder: Jason
   plug :dispatch
 
-  # TODO: not an "id" anymore, but a more general identifier (label or id)
   get "/:id" do
-    with { :ok, params } <- Map.fetch(conn, :params),
-         { :ok, id     } <- Map.fetch(params, "id"),
-         id              <- @topic_db.resolve_id(id),
-         id              <- Id.from(id) ,
-         # TODO: Needs to be { :ok, value } tuple or else we can bleed an error.
-         document_or_nil <- @document_db.fetch(id),
-         { :ok, body }   <- @presenter.present({ :get, "/:id" }, document_or_nil)
+    with { :ok, params }   <- Map.fetch(conn, :params),
+         { :ok, id     }   <- Map.fetch(params, "id"),
+         id                <- @topic_db.resolve_id(id),
+         id                <- Id.from(id),
+         { :ok, document } <- @document_db.fetch(id),
+         { :ok, body }     <- @presenter.present({ :get, "/:id" }, document)
     do
       conn
       |> put_resp_header("content-type", "application/json")
       |> send_resp(200, body)
     else
-      error -> todo_real_error_handling(conn, error)
+      any ->
+        raise "Unhandled case: #{inspect(any)}"
     end
-  end
-
-  defp todo_real_error_handling(conn, error) do
-    IO.inspect(error)
-    send_resp(conn, 503, "TODO: real error handling!")
   end
 
 end

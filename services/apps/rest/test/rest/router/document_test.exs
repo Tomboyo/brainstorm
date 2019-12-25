@@ -18,7 +18,7 @@ defmodule Rest.Router.DocumentTest do
 
       # then generates a document from the id,
       Database.DocumentMock
-      |> expect(:fetch, fn ^id -> :document end)
+      |> expect(:fetch, fn ^id -> { :ok, :document } end)
 
       # and presents the document.
       Rest.Presenter.DocumentMock

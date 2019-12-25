@@ -12,4 +12,11 @@ defmodule Database do
       parameters)
   end
 
+  def query!(query, parameters \\ %{}) do
+    Bolt.Sips.query!(
+      Bolt.Sips.conn(),
+      query,
+      parameters)
+  end
+
 end

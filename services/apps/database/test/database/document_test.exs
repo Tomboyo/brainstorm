@@ -1,6 +1,7 @@
 defmodule Database.DocumentTest do
   use ExUnit.Case
   use Database.Case
+  import Database.Document.Exception, only: [ exception: 1 ]
   alias Database.{ Document, Fact, Id, Topic }
 
   defp persistent_topic(label) do
@@ -10,8 +11,9 @@ defmodule Database.DocumentTest do
   end
 
   describe "Given a transient topic" do
-    test "fetch/1 returns nil" do
-      assert nil == Document.fetch(Id.new())
+    test "fetch/1 returns a :not_found error" do
+      id = Id.new()
+      assert { :error, exception({ :not_found, id }) } == Document.fetch(id)
     end
   end
 
@@ -23,7 +25,8 @@ defmodule Database.DocumentTest do
     test "fetch/1 returns a document generated from the topic", %{
       topic: topic
     } do
-      assert topic == Document.fetch(topic.id).topic
+      { :ok, document } = Document.fetch(topic.id)
+      assert topic == document.topic
     end
   end
 
@@ -40,9 +43,10 @@ defmodule Database.DocumentTest do
       topic: topic,
       fact: fact
     } do
-      assert Document.fetch(topic.id).facts == MapSet.new([
+      { :ok, document } = Document.fetch(topic.id)
+      assert MapSet.new([
         Fact.from(fact.id, fact.content, [ topic ])
-      ])
+      ]) == document.facts
     end
   end
 
@@ -62,9 +66,10 @@ defmodule Database.DocumentTest do
       topic_b: topic_b,
       fact: fact
     } do
-      assert Document.fetch(topic_a.id).facts == MapSet.new([
+      { :ok, document } = Document.fetch(topic_a.id)
+      assert MapSet.new([
         Fact.from(fact.id, fact.content, [ topic_a, topic_b ])
-      ])
+      ]) == document.facts
     end
 
     test "fetch(B.id) returns a document that contains F", %{
@@ -72,9 +77,10 @@ defmodule Database.DocumentTest do
       topic_b: topic_b,
       fact: fact
     } do
-      assert Document.fetch(topic_b.id).facts == MapSet.new([
+      { :ok, document } = Document.fetch(topic_b.id)
+      assert MapSet.new([
         Fact.from(fact.id, fact.content, [ topic_a, topic_b ])
-      ])
+      ]) == document.facts
     end
   end
 end

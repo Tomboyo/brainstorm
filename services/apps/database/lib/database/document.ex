@@ -8,6 +8,7 @@ defmodule Database.Document do
   accumulation of those facts associated with the document root.
   """
 
+  import Database.Document.Exception, only: [ exception: 1 ]
   alias Database.{ Fact, Id, Topic }
 
   @opaque t :: %__MODULE__{
@@ -31,10 +32,8 @@ defmodule Database.Document do
   end
 
   @callback fetch(Id.t) ::
-  # TODO: { :ok, t } to avoid capturing error structs
-    nil
-  | __MODULE__.t
-  | { :error, any }
+      { :ok, __MODULE__.t }
+    | { :error, Database.Document.Exception.t }
   @fetch """
   MATCH (topic :topic { id: $id })
   RETURN
@@ -42,13 +41,12 @@ defmodule Database.Document do
     [ (topic)-[f:fact]-(t) | [ f.id, f.content, t.id, t.label ]] as facts
   """
   def fetch(%Id{} = id) do
-    Database.query(@fetch, %{
+    Database.query!(@fetch, %{
       id: to_string(id)
     })
     |> case do
-      { :ok, [] }        -> nil
-      { :ok, [ record ]} -> to_document(id, record)
-      { :error, cause }  -> { :error, cause }
+      []         -> { :error, exception({ :not_found, id }) }
+      [ record ] -> { :ok, to_document(id, record) }
     end
   end
 
