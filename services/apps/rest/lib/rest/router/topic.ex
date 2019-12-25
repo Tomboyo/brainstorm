@@ -18,7 +18,9 @@ defmodule Rest.Router.Topic do
          :ok             <- @topic_db.persist(topic),
          { :ok, body }   <- @presenter.present({ :post, "/" }, topic)
     do
-      send_resp(conn, 201, body)
+      conn
+      |> put_resp_header("content-type", "application/json")
+      |> send_resp(201, body)
     else
       error -> todo_real_error_handling(conn, error)
     end
@@ -30,7 +32,9 @@ defmodule Rest.Router.Topic do
          { :ok, topics } <- @topic_db.find(search),
          { :ok, body }   <- @presenter.present({ :get, "/" }, topics)
     do
-      send_resp(conn, 200, body)
+      conn
+      |> put_resp_header("content-type", "application/json")
+      |> send_resp(200, body)
     else
       error -> todo_real_error_handling(conn, error)
     end

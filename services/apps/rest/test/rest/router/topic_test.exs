@@ -89,6 +89,13 @@ defmodule Rest.Router.TopicTest do
     } do
       assert 201 == conn.status
     end
+
+    test "responds with an application/json content type", %{
+      conn: conn
+    } do
+      assert conn.resp_headers
+        |> Enum.member?({ "content-type", "application/json" })
+    end
   end
 
   describe "GET /" do
@@ -124,6 +131,13 @@ defmodule Rest.Router.TopicTest do
       conn: conn,
     } do
       assert "presented topics" == conn.resp_body
+    end
+
+    test "responds with an application/json content type", %{
+      conn: conn
+    } do
+      assert conn.resp_headers
+        |> Enum.member?({ "content-type", "application/json" })
     end
   end
 end
