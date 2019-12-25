@@ -1,5 +1,6 @@
 defmodule Rest.Router.Topic do
   use Plug.Router
+  alias Rest.Router.Exception, as: RouterException
   alias Database.Id
 
   @topic_db Application.get_env(:rest, :topic_database, Database.Topic)
@@ -22,21 +23,21 @@ defmodule Rest.Router.Topic do
       |> put_resp_header("content-type", "application/json")
       |> send_resp(201, body)
     else
-      error -> todo_real_error_handling(conn, error)
+      any -> raise RouterException, { :unhandled_case, any }
     end
   end
 
   get "/" do
     with { :ok, params } <- param(conn, :params),
          { :ok, search } <- param(params, "search"),
-         { :ok, topics } <- @topic_db.find(search),
+         topics          <- @topic_db.find(search),
          { :ok, body }   <- @presenter.present({ :get, "/" }, topics)
     do
       conn
       |> put_resp_header("content-type", "application/json")
       |> send_resp(200, body)
     else
-      error -> todo_real_error_handling(conn, error)
+      any -> raise RouterException, { :unhandled_case, any }
     end
   end
 
@@ -45,13 +46,14 @@ defmodule Rest.Router.Topic do
          { :ok, id     } <- param(params, "id"),
          id              <- Id.from(id)
     do
+      # Should go through a presenter to get the body, at which point we may
+      # introduce a TopicException to differentiate the end-states.
       case @topic_db.delete(id) do
         :ok               -> send_resp(conn, 204, "")
         :enoent           -> send_resp(conn, 404, "")
-        { :error, error } -> todo_real_error_handling(conn, error)
       end
     else
-      error -> todo_real_error_handling(conn, error)
+      any -> raise RouterException, { :unhandled_case, any }
     end
   end
 
@@ -62,11 +64,6 @@ defmodule Rest.Router.Topic do
       { :ok, value } -> { :ok, value }
       :error         -> { :error, "#{key} not found" }
     end
-  end
-
-  def todo_real_error_handling(conn, error) do
-    IO.inspect(error)
-    send_resp(conn, 503, "TODO: real error handling!")
   end
 
 end

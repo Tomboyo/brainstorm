@@ -1,9 +1,8 @@
 defmodule Database.TopicTest do
   use ExUnit.Case
   use Database.Case
-  doctest Database.Topic
-
   alias Database.{ Id, Topic }
+  doctest Database.Topic
 
   defp create_persistent_topic(_content) do
     topic = Topic.new("my label")
@@ -15,16 +14,16 @@ defmodule Database.TopicTest do
     setup :create_persistent_topic
 
     test "returns an empty set when there are no matched topics" do
-      assert { :ok, MapSet.new() } == Topic.find("matches-nothing")
+      assert MapSet.new() == Topic.find("matches-nothing")
     end
 
     test "returns a map set of matched results", %{ topic: topic } do
-      assert { :ok, MapSet.new([ topic ]) } == Topic.find("label")
+      assert MapSet.new([ topic ]) == Topic.find("label")
     end
 
     test "escapes Apache Lucene query special characters" do
       # This will break Apache Lucene's grammar if not quoted correctly
-      assert { :ok, MapSet.new([]) } == Topic.find(")")
+      assert MapSet.new([]) == Topic.find(")")
     end
   end
 
@@ -34,7 +33,7 @@ defmodule Database.TopicTest do
     test "fails to persist a topic twice", %{
       topic: persistent
     } do
-      assert { :error, _any } = Topic.persist(persistent)
+      assert_raise(Bolt.Sips.Exception, fn () -> Topic.persist(persistent) end)
     end
 
     test "returns :ok when it persists a topic" do

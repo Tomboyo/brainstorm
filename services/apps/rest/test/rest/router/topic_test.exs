@@ -104,7 +104,7 @@ defmodule Rest.Router.TopicTest do
 
       # finds topics which match the given search term by label
       Database.TopicMock
-      |> expect(:find, fn "search term" -> { :ok, :mock_topics } end)
+      |> expect(:find, fn "search term" -> :mock_topics end)
 
       # then presents those topics to the client
       Rest.Presenter.TopicMock

@@ -36,19 +36,16 @@ defmodule Database.Topic do
     %__MODULE__{ id: id , label: label }
   end
 
-  @callback persist(__MODULE__.t) :: :ok | { :error, any }
+  @callback persist(__MODULE__.t) :: :ok
   @persist """
   CREATE (:topic { id: $id, label: $label })
   """
   def persist(%__MODULE__{} = topic) do
-    Database.query(@persist, %{
+    Database.query!(@persist, %{
       id:    to_string(topic.id),
       label: topic.label
     })
-    |> case do
-      { :ok, _response } -> :ok
-      { :error, cause }  -> { :error, cause }
-    end
+    :ok
   end
 
   @callback find(String.t) :: MapSet.t(persistent)
@@ -60,21 +57,18 @@ defmodule Database.Topic do
   RETURN node.id as id, node.label as label
   """
   def find(search_term) when is_binary(search_term) do
-    Database.query(@find, %{ "search_term" => Lucene.escape(search_term) })
-    |> case do
-      { :ok, topics } ->
-        result = for %{ "id" => id, "label" => label } <- topics,
-          into: MapSet.new(),
-          do: %__MODULE__{ id: Id.from(id) , label: label }
-        { :ok, result }
-      { :error, cause } -> { :error, cause }
-    end
+    topics = Database.query!(@find, %{
+      "search_term" => Lucene.escape(search_term)
+    })
+
+    for %{ "id" => id, "label" => label } <- topics,
+      into: MapSet.new(),
+      do: %__MODULE__{ id: Id.from(id) , label: label }
   end
 
   @callback resolve_ids(String.t) ::
       { :total, [ String.t ]}
     | { :partial, %{ String.t => MapSet.t(t) }}
-    | { :error, term }
   def resolve_ids(terms) do
     resolutions = Enum.map(terms, &resolve_id/1)
     partials =
@@ -92,31 +86,27 @@ defmodule Database.Topic do
   @callback resolve_id(String.t) ::
       String.t
     | %{ String.t => MapSet.t(Database.Topic.t) }
-    | { :error, term }
   def resolve_id(term) do
     if Id.is_id(term) do
       term
     else
-      case find(term) do
-        { :ok, set } -> if Sets.is_singleton(set),
-          do:   to_string(Sets.get_any(set).id),
-          else: %{ term => set }
-        { :error, cause }  -> { :error, cause }
-      end
+      terms = find(term)
+      if Sets.is_singleton(terms),
+        do:   to_string(Sets.get_any(terms).id),
+        else: %{ term => terms }
     end
   end
 
-  @callback delete(Id.t) :: :ok | :enoent | { :error, any }
+  @callback delete(Id.t) :: :ok | :enoent
   @delete """
   MATCH (n:topic { id: $id })
   DETACH DELETE (n)
   """
   def delete(%Id{} = id) do
-    Database.query(@delete, %{ "id" => to_string(id) })
+    Database.query!(@delete, %{ "id" => to_string(id) })
     |> case do
-      { :ok, %{ stats: %{ "nodes-deleted" => 1 }}} -> :ok
-      { :ok, %{ stats: nil }} -> :enoent
-      { :error, cause } -> { :error, cause }
+      %{ stats: %{ "nodes-deleted" => 1 }} -> :ok
+      %{ stats: nil } -> :enoent
     end
   end
 
