@@ -1,6 +1,5 @@
 defmodule Rest.Router.Topic do
   use Plug.Router
-  alias Rest.Router.Exception, as: RouterException
   alias Database.Id
 
   @topic_db Application.get_env(:rest, :topic_database, Database.Topic)
@@ -22,8 +21,6 @@ defmodule Rest.Router.Topic do
       conn
       |> put_resp_header("content-type", "application/json")
       |> send_resp(201, body)
-    else
-      any -> raise RouterException, { :unhandled_case, any }
     end
   end
 
@@ -36,8 +33,6 @@ defmodule Rest.Router.Topic do
       conn
       |> put_resp_header("content-type", "application/json")
       |> send_resp(200, body)
-    else
-      any -> raise RouterException, { :unhandled_case, any }
     end
   end
 
@@ -52,8 +47,6 @@ defmodule Rest.Router.Topic do
         :ok               -> send_resp(conn, 204, "")
         :enoent           -> send_resp(conn, 404, "")
       end
-    else
-      any -> raise RouterException, { :unhandled_case, any }
     end
   end
 

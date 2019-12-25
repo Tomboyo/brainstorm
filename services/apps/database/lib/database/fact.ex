@@ -58,7 +58,7 @@ defmodule Database.Fact do
     }
   end
 
-  @callback persist(t) :: :ok | { :error, term }
+  @callback persist(t) :: :ok
   def persist(fact = %__MODULE__{}) do
     fact.topics
       |> Enum.map(&to_string/1)
@@ -74,15 +74,14 @@ defmodule Database.Fact do
   CREATE (from)-[fact:fact { id: $id, content: $content }]->(to)
   """
   defp persist(id, [ from, to ], content) do
-    case Database.query(@persist, %{
+    Database.query!(@persist, %{
       "from"    => from,
       "to"      => to,
       "id"      => id |> to_string(),
       "content" => content
-    }) do
-      { :ok, _ } -> :ok
-      { :error, reason } -> { :error, reason }
-    end
+    })
+
+    :ok
   end
 
 end

@@ -1,7 +1,6 @@
 defmodule Rest.Router.Document do
   use Plug.Router
   require Logger
-  alias Rest.Router.Exception, as: RouterException
   alias Database.Id
 
   @document_db Application.get_env(
@@ -28,8 +27,6 @@ defmodule Rest.Router.Document do
       conn
       |> put_resp_header("content-type", "application/json")
       |> send_resp(200, body)
-    else
-      any -> raise RouterException, { :unhandled_case, any }
     end
   end
 
