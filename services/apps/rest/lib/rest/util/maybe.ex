@@ -37,9 +37,9 @@ defmodule Rest.Util.Maybe do
 
   defp lift_function(expected_tag, function, error_tag) do
     fn state ->
-      case function.(state) do
+      case tuple = function.(state) do
         { ^expected_tag, value } -> { :ok, value }
-        _ -> { :error, error_tag }
+        _ -> { :error, { error_tag, state, tuple }}
       end
     end
   end

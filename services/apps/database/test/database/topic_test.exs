@@ -48,10 +48,7 @@ defmodule Database.TopicTest do
       Topic.delete(topic.id)
 
       # TODO: this should be implemented as Topic.fetch/1
-      assert {
-        :error,
-        Database.Document.Exception.exception({ :not_found, topic.id })
-      } == Database.Document.fetch(topic.id)
+      assert :enoent == Database.Document.fetch(topic.id)
     end
 
     test "Topic.delete/1 returns :ok", %{ topic: topic } do

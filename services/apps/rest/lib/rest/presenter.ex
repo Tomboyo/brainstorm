@@ -7,4 +7,11 @@ defmodule Rest.Presenter do
       { :ok, String.t }
     | { :error, term }
 
+  def present!(module, route, presentable) do
+    case module.present(route, presentable) do
+      { :ok, value }   -> value
+      { :error, term } -> raise term
+    end
+  end
+
 end

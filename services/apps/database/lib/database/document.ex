@@ -8,7 +8,6 @@ defmodule Database.Document do
   accumulation of those facts associated with the document root.
   """
 
-  import Database.Document.Exception, only: [ exception: 1 ]
   alias Database.{ Fact, Id, Topic }
 
   @opaque t :: %__MODULE__{
@@ -45,7 +44,7 @@ defmodule Database.Document do
       id: to_string(id)
     })
     |> case do
-      []         -> { :error, exception({ :not_found, id }) }
+      []         -> :enoent
       [ record ] -> { :ok, to_document(id, record) }
     end
   end

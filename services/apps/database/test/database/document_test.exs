@@ -1,7 +1,6 @@
 defmodule Database.DocumentTest do
   use ExUnit.Case
   use Database.Case
-  import Database.Document.Exception, only: [ exception: 1 ]
   alias Database.{ Document, Fact, Id, Topic }
 
   defp persistent_topic(label) do
@@ -13,7 +12,7 @@ defmodule Database.DocumentTest do
   describe "Given a transient topic" do
     test "fetch/1 returns a :not_found error" do
       id = Id.new()
-      assert { :error, exception({ :not_found, id }) } == Document.fetch(id)
+      assert :enoent == Document.fetch(id)
     end
   end
 
