@@ -31,72 +31,81 @@ module Brainstorm::CliTest
       @cli = Brainstorm::Cli.new(@service, @mock_editor, presenter)
     end
 
-    it '`version` returns the cli version' do
-      assert_equal Brainstorm::VERSION, @cli.call([ 'version' ])
-    end
-
-    it '`find-topics <unmatched term>` finds an empty set' do
-      assert_equal Set.new(), @cli.call([ 'find-topics', 'notopic' ])
-    end
-
-    describe 'Given a topic id' do
-      before do
-        @topic_a_id = @cli.call([ 'create-topic', 'Topic A' ])
-      end
-
-      it '`delete-topic <topic-id>` deletes the topic' do
-        @cli.call([ 'delete-topic', @topic_a_id ])
-
-        assert_equal Set.new(), @cli.call([ 'find-topics', 'Topic A' ])
+    describe '`version`' do
+      it 'returns the cli version' do
+        assert_equal Brainstorm::VERSION, @cli.call([ 'version' ])
       end
     end
 
-    describe 'Given topics A and B related by fact F' do
-      before do
-        @topic_a_id = @cli.call([ 'create-topic', 'Topic A' ])
-        @topic_b_id = @cli.call([ 'create-topic', 'Topic B' ])
-
-        @mock_editor.expect :get_content, 'fact content'
-        @fact_f_id = @cli.call([ 'create-fact', @topic_a_id, @topic_b_id ])
+    describe '`find-topics` <term>' do
+      describe 'given a search term which matches nothing' do
+        it 'returns the empty set' do
+          assert_equal Set.new(), @cli.call([ 'find-topics', 'notopic' ])
+        end
       end
 
-      after do
-        @service.delete_topic(@topic_a_id)
-        @service.delete_topic(@topic_b_id)
-      end
-
-      it '`fetch-document <topic-a-id>` generates a document for A' do
-        document = @cli.call([ 'fetch-document', @topic_a_id ])
-
-        # The document is rooted on A and includes fact F (and associated topic B)
-        topic_a  = Topic.new(@topic_a_id, 'Topic A')
-        topic_b  = Topic.new(@topic_b_id, 'Topic B')
-        fact     = Fact.new(@fact_f_id, 'fact content', [ topic_a, topic_b ])
-        expected = Document.new(topic_a, [ fact ])
-
-        assert_equal expected, document
+      describe 'given a search term which matches topics' do
+        before do
+          @topic_a_id = @cli.call([ 'create-topic', 'Topic A' ])
+          @topic_b_id = @cli.call([ 'create-topic', 'Topic B' ])
+        end
+  
+        after do
+          @service.delete_topic(@topic_a_id)
+          @service.delete_topic(@topic_b_id)
+        end
+  
+        it 'returns a set of those topics' do
+          assert_equal(
+            Set.new([
+              Topic.new(@topic_a_id, 'Topic A'),
+              Topic.new(@topic_b_id, 'Topic B')
+            ]),
+            @cli.call([ 'find-topics', 'Topic' ])
+          )
+        end
       end
     end
 
-    describe 'Given topics A and B' do
-      before do
-        @topic_a_id = @cli.call([ 'create-topic', 'Topic A' ])
-        @topic_b_id = @cli.call([ 'create-topic', 'Topic B' ])
-      end
+    describe 'delete-topic <topic-id>' do
+      describe 'given the id of a topic' do
+        before do
+          @topic_a_id = @cli.call([ 'create-topic', 'Topic A' ])
+        end
 
-      after do
-        @service.delete_topic(@topic_a_id)
-        @service.delete_topic(@topic_b_id)
+        it 'deletes the topic' do
+          @cli.call([ 'delete-topic', @topic_a_id ])
+          assert_equal Set.new(), @cli.call([ 'find-topics', 'Topic A' ])
+        end
       end
+    end
 
-      it '`find-topics <common term>` finds those topics' do
-        assert_equal(
-          Set.new([
-            Topic.new(@topic_a_id, 'Topic A'),
-            Topic.new(@topic_b_id, 'Topic B')
-          ]),
-          @cli.call([ 'find-topics', 'Topic' ])
-        )
+    describe '`fetch-document <topic-id>`' do
+      describe 'given topics A and B related by fact F' do
+        before do
+          @topic_a_id = @cli.call([ 'create-topic', 'Topic A' ])
+          @topic_b_id = @cli.call([ 'create-topic', 'Topic B' ])
+
+          @mock_editor.expect :get_content, 'fact content'
+          @fact_f_id = @cli.call([ 'create-fact', @topic_a_id, @topic_b_id ])
+        end
+
+        after do
+          @service.delete_topic(@topic_a_id)
+          @service.delete_topic(@topic_b_id)
+        end
+
+        it 'generates a document from topic A' do
+          document = @cli.call([ 'fetch-document', @topic_a_id ])
+
+          # The document is rooted on A and includes fact F (and associated topic B)
+          topic_a  = Topic.new(@topic_a_id, 'Topic A')
+          topic_b  = Topic.new(@topic_b_id, 'Topic B')
+          fact     = Fact.new(@fact_f_id, 'fact content', [ topic_a, topic_b ])
+          expected = Document.new(topic_a, [ fact ])
+
+          assert_equal expected, document
+        end
       end
     end
   end
