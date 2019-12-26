@@ -1,8 +1,6 @@
 require 'brainstorm'
 require 'brainstorm/service'
 
-require 'tomlrb'
-
 class Brainstorm::Cli
 
   Service = Brainstorm::Service

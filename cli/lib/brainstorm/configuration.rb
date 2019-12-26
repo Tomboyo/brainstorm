@@ -1,5 +1,7 @@
 require 'brainstorm'
 
+require 'tomlrb'
+
 module Brainstorm::Configuration
   CONFIG_PATH = '~/.brainstorm/config'
   def self.get_config(path = CONFIG_PATH)
