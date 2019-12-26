@@ -1,21 +1,22 @@
 require 'brainstorm'
 require 'brainstorm/version'
+require 'brainstorm/model'
+require 'brainstorm/model/document'
 
 class Brainstorm::AdocPresenter
 
-  def present_document(document)
-    facts = document.facts
-      .sort { |f1, f2| paragraph(0, f1) <=> paragraph(0, f2) }
-      .to_a
-    
-    [
-      title(document.topic.label),
-      paragraphs(facts),
-      references(facts),
-    ].join("\n\n") << "\n"
+  def fetch_document(response)
+    case response
+    when Brainstorm::Model::Document
+      present_document(response)
+    when :enoent
+      "Could not generate document: No topic with the given id exists."
+    else
+      present_error(response)
+    end
   end
 
-  def present_topics(topics)
+  def find_topics(topics)
     topics
       .map { |topic| "#{topic.label} <#{topic.id}>" }
       .join("\n") << "\n"
@@ -27,12 +28,32 @@ class Brainstorm::AdocPresenter
       'Topic deleted.'
     when :enoent
       'Topic not found.'
-    when StandardError
-      e = response
-      "Encountered an error: `#{e}`#{e.backtrace&.join("\n")&.<<("\n")}"
     else
-      "Unexpected error: unexpected service response `#{response}`."
+      present_error(response)
     end
+  end
+
+  private
+
+  def present_error(error)
+    case error
+    when StandardError
+      "Encountered an error: `#{error}`#{error.backtrace&.join("\n")&.<<("\n")}"
+    else
+      "Unexpected error: unexpected service response `#{error}`."
+    end
+  end
+
+  def present_document(document)
+    facts = document.facts
+      .sort { |f1, f2| paragraph(0, f1) <=> paragraph(0, f2) }
+      .to_a
+    
+    [
+      title(document.topic.label),
+      paragraphs(facts),
+      references(facts),
+    ].join("\n\n") << "\n"
   end
 
   private

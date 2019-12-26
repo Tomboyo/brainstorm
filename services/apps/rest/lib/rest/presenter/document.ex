@@ -9,7 +9,7 @@ defmodule Rest.Presenter.Document do
     { :ok, Jason.encode!(document) }
   end
   def present({ :get, "/:id" }, { :document_error, id, :enoent }) do
-    { :ok, "Could not generate document: No topic with id `#{id}` exists." }
+    { :ok, Jason.encode!("Could not generate document: No topic with id `#{id}` exists.") }
   end
 
 end

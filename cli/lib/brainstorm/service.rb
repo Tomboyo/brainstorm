@@ -32,11 +32,15 @@ class Brainstorm::Service
   end
 
   def fetch_document(id)
-    HTTP.get("#{@base}/document/#{id}")
-      .body
-      .to_s
-      .yield_self { |x| JSON.parse(x) }
-      .yield_self { |x| Brainstorm::Model::Document.from_hash(x) }
+    response = HTTP.get("#{@base}/document/#{id}")
+
+    case response.code
+    when 200
+      json = JSON.parse(response.body.to_s)
+      Brainstorm::Model::Document.from_hash(json)
+    when 404
+      :enoent
+    end
   rescue Exception => e
     log_error("Failed to fetch id `#{id}`", e)
     raise e

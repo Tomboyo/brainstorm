@@ -15,9 +15,8 @@ defmodule Rest.Presenter.DocumentTest do
 
   describe "GET /:id (when given a missing-document error)" do
     test "json-encodes an error message" do
-      assert {
-        :ok,
-        "Could not generate document: No topic with id `id` exists."
+      assert { :ok, Jason.encode!(
+        "Could not generate document: No topic with id `id` exists.")
       } == Document.present(
         { :get, "/:id" },
         { :document_error, "id", :enoent }

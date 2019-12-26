@@ -16,8 +16,8 @@ module Brainstorm::CliTest
   # Allows this suite to operate on the data structures instead of renderings
   # of those structures.
   class NoopPresenter
-    def present_document(document) ; document ; end
-    def present_topics(topics) ; topics ; end
+    def fetch_document(document) ; document ; end
+    def find_topics(topics) ; topics ; end
     def delete_topic(signal) ; signal ; end
   end
 
@@ -81,6 +81,16 @@ module Brainstorm::CliTest
     end
 
     describe '`fetch-document <topic-id>`' do
+      describe 'given a topic id which identifies a missing topic' do
+        it 'generates an error indicating that no topic exists' do
+          # we must pass a string with a valid id structure so that the rest
+          # service does not interpret this as a search term.
+          fake_uuid = '88888888-4444-4444-4444-121212121212'
+          error = @cli.call([ 'fetch-document', fake_uuid ])
+          assert_equal(:enoent, error)
+        end
+      end
+
       describe 'given topics A and B related by fact F' do
         before do
           @topic_a_id = @cli.call([ 'create-topic', 'Topic A' ])
@@ -88,6 +98,10 @@ module Brainstorm::CliTest
 
           @mock_editor.expect :get_content, 'fact content'
           @fact_f_id = @cli.call([ 'create-fact', @topic_a_id, @topic_b_id ])
+
+          @topic_a = Topic.new(@topic_a_id, 'Topic A')
+          @topic_b = Topic.new(@topic_b_id, 'Topic B')
+          @fact = Fact.new(@fact_f_id, 'fact content', [ @topic_a, @topic_b ])
         end
 
         after do
@@ -95,15 +109,15 @@ module Brainstorm::CliTest
           @service.delete_topic(@topic_b_id)
         end
 
-        it 'generates a document from topic A' do
+        it 'generates a document from topic A related to B by F' do
           document = @cli.call([ 'fetch-document', @topic_a_id ])
+          expected = Document.new(@topic_a, [ @fact ])
+          assert_equal expected, document
+        end
 
-          # The document is rooted on A and includes fact F (and associated topic B)
-          topic_a  = Topic.new(@topic_a_id, 'Topic A')
-          topic_b  = Topic.new(@topic_b_id, 'Topic B')
-          fact     = Fact.new(@fact_f_id, 'fact content', [ topic_a, topic_b ])
-          expected = Document.new(topic_a, [ fact ])
-
+        it 'generates documents from topic B related to A by F' do
+          document = @cli.call([ 'fetch-document', @topic_b_id ])
+          expected = Document.new(@topic_b, [ @fact ])
           assert_equal expected, document
         end
       end

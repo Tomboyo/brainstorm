@@ -53,7 +53,7 @@ class Brainstorm::Cli
     else
       id = args.first
       document = @service.fetch_document(id)
-      @presenter.present_document(document)
+      @presenter.fetch_document(document)
     end
   end
 
@@ -73,7 +73,7 @@ class Brainstorm::Cli
     else
       search_term = args.first
       topics = @service.find_topics(search_term)
-      @presenter.present_topics(topics)
+      @presenter.find_topics(topics)
     end
   end
 
