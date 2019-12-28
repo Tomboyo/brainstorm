@@ -3,31 +3,27 @@ defmodule Rest.Router.DocumentTest do
   use Plug.Test
   import Mox
   alias Rest.Router
-  alias Database.Id
 
   @opts Router.init([])
 
-  describe "GET /document/:id (when :id is a persistent topic id)" do
+  describe "GET /document/:term (when :term resolves to an id)" do
     setup do
-      id = Id.new()
-      id_str = to_string(id)
-
-      # verifies the body parameter is an id,
+      # resolves the term to an id,
       Database.TopicMock
-      |> expect(:resolve_id, fn ^id_str -> id_str end)
+      |> expect(:resolve_id, fn "mock term" -> { :id, :mock_id } end)
 
       # then generates a document from the id,
       Database.DocumentMock
-      |> expect(:fetch, fn ^id -> { :ok, :document } end)
+      |> expect(:fetch, fn :mock_id -> { :ok, :document } end)
 
-      # and presents the document.
+      # then presents the document.
       Rest.Presenter.DocumentMock
       |> expect(:present, fn { :get, "/:id" }, :document ->
           { :ok, "presented document" }
         end)
 
       conn =
-        conn(:get, "/document/#{to_string(id)}", nil)
+        conn(:get, "/document/mock%20term", nil)
         |> Router.call(@opts)
 
       [ conn: conn ]
@@ -57,29 +53,26 @@ defmodule Rest.Router.DocumentTest do
     end
   end
 
-  describe "GET /document/:id (when :id is not found)" do
+  describe "GET /document/:term (when :term resolves to a missing id)" do
     setup do
-      id = Id.new()
-      id_str = to_string(id)
-
-      # verifies the body parameter is an id,
+      # resolves the term to an id,
       Database.TopicMock
-      |> expect(:resolve_id, fn ^id_str -> id_str end)
+      |> expect(:resolve_id, fn "mock term" -> { :id, :mock_id } end)
 
       # then fails to find a document,
       Database.DocumentMock
-      |> expect(:fetch, fn ^id -> :enoent end)
+      |> expect(:fetch, fn :mock_id -> :enoent end)
 
       # and presents the error to the client.
       Rest.Presenter.DocumentMock
       |> expect(
         :present,
-        fn { :get, "/:id" }, { :document_error, ^id, :enoent } ->
+        fn { :get, "/:id" }, { :document_error, :mock_id, :enoent } ->
           { :ok, "presented error" }
         end)
 
       conn =
-        conn(:get, "/document/#{to_string(id)}", nil)
+        conn(:get, "/document/mock%20term", nil)
         |> Router.call(@opts)
 
       [ conn: conn ]

@@ -66,34 +66,39 @@ defmodule Database.Topic do
       do: %__MODULE__{ id: Id.from(id) , label: label }
   end
 
-  @callback resolve_ids(String.t) ::
-      { :total, [ String.t ]}
-    | { :partial, %{ String.t => MapSet.t(t) }}
+  @callback resolve_ids(String.t) :: %{
+    id: MapSet.t(Database.Id.t),
+    match: %{ String.t => MapSet.t(t) }
+  }
   def resolve_ids(terms) do
     resolutions = Enum.map(terms, &resolve_id/1)
-    partials =
-      resolutions
-      |> Stream.filter(&is_map/1)
+
+    ids = resolutions
+      |> Stream.filter(&match?({ :id, _ }, &1))
+      |> Enum.into(MapSet.new(), &elem(&1, 1))
+
+    matches = resolutions
+      |> Stream.filter(&match?({ :match, _ }, &1))
+      |> Stream.map(&elem(&1, 1))
       |> Enum.reduce(%{}, &Map.merge/2)
 
-    if Enum.empty?(partials) do
-      { :total, resolutions }
-    else
-      { :partial, partials }
-    end
+    %{ id: ids, match: matches }
   end
 
   @callback resolve_id(String.t) ::
-      String.t
-    | %{ String.t => MapSet.t(Database.Topic.t) }
+      { :id, Database.Id.t }
+    | { :match, %{ String.t => MapSet.t(t) }}
   def resolve_id(term) do
     if Id.is_id(term) do
-      term
+      case term do
+        %Id{} = term -> { :id, term }
+        _ -> { :id, Id.from(term) }
+      end
     else
       terms = find(term)
       if Sets.is_singleton(terms),
-        do:   to_string(Sets.get_any(terms).id),
-        else: %{ term => terms }
+        do:   { :id, Sets.get_any(terms).id },
+        else: { :match, %{ term => terms }}
     end
   end
 

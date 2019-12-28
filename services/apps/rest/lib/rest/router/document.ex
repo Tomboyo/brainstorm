@@ -1,7 +1,6 @@
 defmodule Rest.Router.Document do
   use Plug.Router
   require Logger
-  alias Database.Id
   alias Rest.Presenter
   alias Rest.Util.Maybe
 
@@ -20,15 +19,13 @@ defmodule Rest.Router.Document do
 
   get "/:id" do
     present! = &Presenter.present!(@presenter, { :get, "/:id" }, &1)
-
     conn = put_resp_header(conn, "content-type", "application/json")
 
     Maybe.of(fn -> conn end)
-      |> Maybe.map(&Map.fetch(&1, :params), :missing_params)
-      |> Maybe.map(&Map.fetch(&1, "id"),    :missing_id)
-      |> Maybe.replace(&@topic_db.resolve_id(&1))
-      |> Maybe.replace(&Id.from(&1))
-      |> Maybe.map(&@document_db.fetch(&1), :document_error)
+      |> Maybe.map(&Map.fetch(&1, :params),        :missing_params)
+      |> Maybe.map(&Map.fetch(&1, "id"),           :missing_id)
+      |> Maybe.map(:id, &@topic_db.resolve_id(&1), :id_error)
+      |> Maybe.map(&@document_db.fetch(&1),        :document_error)
       |> Maybe.produce()
     |> case do
       { :ok, document } -> send_resp(conn, 200, present!.(document))

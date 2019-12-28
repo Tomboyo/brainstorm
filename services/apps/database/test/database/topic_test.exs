@@ -62,82 +62,71 @@ defmodule Database.TopicTest do
     end
   end
 
+  describe "resolve_id/1" do
+    setup do
+      topic_a = Topic.new("topic a")
+      topic_b = Topic.new("topic b")
+      Topic.persist(topic_a)
+      Topic.persist(topic_b)
+      [ topic_a: topic_a, topic_b: topic_b ]
+    end
+
+    test "resolves a well-formed id string to the Id type" do
+      id = Id.new()
+      assert { :id, id } == Topic.resolve_id(to_string(id))
+    end
+
+    test "resolves a search term to the id of a uniquely-matched topic", %{
+      topic_a: topic_a
+    } do
+      assert { :id, topic_a.id } == Topic.resolve_id("topic a")
+    end
+
+    test "resolves an unmatched search term to the empty set" do
+      assert { :match, %{ "unmatched term" => MapSet.new() }} ==
+        Topic.resolve_id("unmatched term")
+    end
+
+    test "resolves the search term to a set of matching topics", %{
+      topic_a: topic_a,
+      topic_b: topic_b
+    } do
+      assert { :match, %{ "topic" => MapSet.new([ topic_a, topic_b ]) }}
+        == Topic.resolve_id("topic")
+    end
+  end
+
   describe "resolve_ids/1" do
-    test "resolves id strings to themselves" do
-      ids = [ to_string(Id.new()), to_string(Id.new()) ]
-      assert ids == Topic.resolve_ids(ids) |> elem(1)
-    end
-  end
-
-  describe "resolve_ids/1 (given a search term which matches one topic)" do
     setup do
-      topic = Topic.new("topic label")
-      topic_id = to_string(topic.id)
-      Topic.persist(topic)
-
-      [ topic_id: topic_id ]
+      topic_a = Topic.new("topic label a")
+      topic_b = Topic.new("topic label b")
+      Topic.persist(topic_a)
+      Topic.persist(topic_b)
+      [ topic_a: topic_a, topic_b: topic_b ]
     end
 
-    test "returns the id of the matched topic", %{
-      topic_id: topic_id
+    test "coalesces ids into a set", %{
+      topic_a: topic_a,
+      topic_b: topic_b
     } do
-      assert [ topic_id ] == Topic.resolve_ids([ "topic" ]) |> elem(1)
-    end
-  end
-
-  describe "resolve_ids/1 (given a search term which matches several topics)" do
-    setup do
-      topic_a = Topic.new("topic a")
-      topic_b = Topic.new("topic b")
-      :ok = Topic.persist(topic_a)
-      :ok = Topic.persist(topic_b)
-
-      [ topics: [ topic_a, topic_b ]]
+      assert %{
+        id: MapSet.new([ topic_a.id, topic_b.id ]),
+        match: %{}
+      } == Topic.resolve_ids([ topic_a.id, "topic b" ])
     end
 
-    test "returns a mapping from the search term to matched topics", %{
-      topics: topics
+    test "coalesces matches into a map", %{
+      topic_a: topic_a,
+      topic_b: topic_b
     } do
-      assert %{ "topic" => MapSet.new(topics) } ==
-        Topic.resolve_ids([ "topic" ])
-        |> elem(1)
-    end
-
-    test "excludes search terms which resolved from the mapping", %{
-      topics: topics
-    } do
-      assert %{ "topic" => MapSet.new(topics) } ==
-        Topic.resolve_ids([ "topic", "topic a" ])
-        |> elem(1)
+      assert %{
+        match: %{
+          "topic" => MapSet.new([ topic_a, topic_b ]),
+          "label" => MapSet.new([ topic_a, topic_b ]),
+          "none"  => MapSet.new()
+        },
+        id: MapSet.new()
+      } == Topic.resolve_ids([ "topic", "label", "none" ])
     end
   end
-
-  describe "resolve_ids/1 (when all terms resolve to an id)" do
-    setup do
-      topic = Topic.new("topic label")
-      Topic.persist(topic)
-
-      [ terms: [ to_string(Id.new()), topic.label ]]
-    end
-
-    test "resolves 'totally'", %{ terms: terms } do
-      assert { :total, _ } = Topic.resolve_ids(terms)
-    end
-  end
-
-  describe "resolve_ids/1 (when one or more terms to not resolve to an id)" do
-    setup do
-      topic_a = Topic.new("topic a")
-      topic_b = Topic.new("topic b")
-      :ok = Topic.persist(topic_a)
-      :ok = Topic.persist(topic_b)
-
-      [ terms: [ "topic", to_string(Id.new()) ]]
-    end
-
-    test "resolves 'partially'", %{ terms: terms } do
-      assert { :partial, _ } = Topic.resolve_ids(terms)
-    end
-  end
-
 end

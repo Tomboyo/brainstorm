@@ -62,7 +62,6 @@ defmodule Database.Id do
         _::bytes-size(12)>>,
       id)
   end
-
   def is_id(%__MODULE__{} = _id), do: true
 
   defimpl String.Chars do

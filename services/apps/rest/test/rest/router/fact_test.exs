@@ -12,13 +12,15 @@ defmodule Rest.Router.FactTest do
       topics = [ "id", "search term" ]
       content = "fact content"
 
-      # "totally" resolves topic terms to unique topic ids,
+      # resolves all search terms to topic ids
       Database.TopicMock
-      |> expect(:resolve_ids, fn ^topics -> { :total, :topic_ids } end)
+      |> expect(:resolve_ids, fn ^topics ->
+          %{ id: :mock_topic_ids, match: %{} }
+        end)
 
       # then uses those topic ids to create a new fact,
       Database.FactMock
-      |> expect(:new, fn ^content, :topic_ids -> :mock_fact end)
+      |> expect(:new, fn ^content, :mock_topic_ids -> :mock_fact end)
       |> expect(:persist, fn :mock_fact -> :ok end)
 
       # and finally presents the fact id to the client.
@@ -63,19 +65,21 @@ defmodule Rest.Router.FactTest do
     end
   end
 
-  describe "POST /fact (given terms that do not resolve totally)" do
+  describe "POST /fact (given search terms that match zero or many topics)" do
     setup do
-      topics = [ "vague search term" ]
+      topics = [ "search term" ]
       content = "fact content"
 
-      # maps search terms to all topics they partially match
+      # maps search terms to matched topics
       Database.TopicMock
-      |> expect(:resolve_ids, fn ^topics -> { :partial, :partial_matches } end)
+      |> expect(:resolve_ids, fn ^topics ->
+        %{ id: MapSet.new(), match: :mock_matches }
+      end)
 
-      # and presents the partial matches to the client
+      # and presents the matches to the client
       Rest.Presenter.FactMock
-      |> expect(:present, fn { :post, "/" }, :partial_matches ->
-          { :ok, "presented partial matches" }
+      |> expect(:present, fn { :post, "/" }, :mock_matches ->
+          { :ok, "presented matches" }
         end)
 
       { :ok, json_request } = Jason.encode(%{
@@ -90,14 +94,14 @@ defmodule Rest.Router.FactTest do
       [ conn: conn ]
     end
 
-    test "identifies and presents partially-matched search terms" do
+    test "identifies and presents search term matches" do
       Mox.verify!()
     end
 
-    test "returns the presented partial matches", %{
+    test "returns the presented matches", %{
       conn: conn
     } do
-      assert "presented partial matches" == conn.resp_body
+      assert "presented matches" == conn.resp_body
     end
 
     test "responds with a 200 status code", %{
