@@ -8,13 +8,8 @@ require 'json'
 
 # A simple HTTP client for the brainstorm service.
 class Brainstorm::Service
-  include Brainstorm::Logging
 
-  class ServiceError < StandardError
-    def initialize(code)
-      super("Unexpected response code `#{code}`")
-    end
-  end
+  class ServiceError < RuntimeError ; end
 
   def initialize(options)
     host = options["host"]
@@ -27,9 +22,8 @@ class Brainstorm::Service
       .body
       .to_s
       .yield_self { |x| JSON.parse(x) }
-  rescue Exception => e
-    log_error("Failed to create topic with label `#{label}`", e)
-    raise e
+  rescue Exception
+    raise ServiceError, "Failed to create topic with label `#{label}`"
   end
 
   def fetch_document(id)
@@ -51,32 +45,30 @@ class Brainstorm::Service
     when 404
       Response.new(:enoent, nil)
     end
-  rescue Exception => e
-    log_error("Failed to fetch id `#{id}`", e)
-    raise e
+  rescue Exception
+    raise ServiceError, "Failed to fetch document `#{id}`"
   end
 
-  def create_fact(ids_or_search_terms, content)
+  def create_fact(terms, content)
+    payload = { 'topics' => terms, 'content' => content }
     HTTP.post("#{@base}/fact", {
-        json: { 'topics' => ids_or_search_terms, 'content' => content }})
+        json: payload})
       .body
       .to_s
       .yield_self { |x| JSON.parse(x) }
-  rescue Exception => e
-    log_error("Failed to create fact", e)
-    raise e
+  rescue Exception
+    raise ServiceError, "Failed to create fact `#{payload}`"
   end
 
-  def find_topics(search_term)
-    HTTP.get("#{@base}/topic", { params: { 'search' => search_term }})
+  def find_topics(term)
+    HTTP.get("#{@base}/topic", { params: { 'search' => term }})
       .body
       .to_s
       .yield_self { |x| JSON.parse(x) }
       .map { |x| Brainstorm::Model::Topic.from_hash(x) }
       .yield_self { |x| Set.new(x) }
-  rescue Exception => e
-    log_error("Failed to search for topics", e)
-    raise e
+  rescue Exception
+    raise ServiceError, "Failed to find topics by term `#{term}``"
   end
 
   def delete_topic(id)
@@ -89,8 +81,8 @@ class Brainstorm::Service
     else
       new ServiceError(code)
     end
-  rescue StandardError => e
-    e
+  rescue Exception
+    raise ServiceError, "Failed to delete topic by term `#{id}`"
   end
 
 end

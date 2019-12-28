@@ -28,21 +28,10 @@ class Brainstorm::AdocPresenter
       'Topic deleted.'
     when :enoent
       'Topic not found.'
-    else
-      present_error(response)
     end
   end
 
   private
-
-  def present_error(error)
-    case error
-    when StandardError
-      "Encountered an error: `#{error}`#{error.backtrace&.join("\n")&.<<("\n")}"
-    else
-      "Unexpected error: unexpected service response `#{error}`."
-    end
-  end
 
   def present_document(document)
     facts = document.facts
