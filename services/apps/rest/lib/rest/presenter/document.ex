@@ -8,13 +8,13 @@ defmodule Rest.Presenter.Document do
   @impl Rest.Presenter
   def present(route, presentable)
   def present(@get_by_id, %Document{} = document) do
-    { :ok, Jason.encode!(document) }
+    { :ok, Jason.encode!(%{ "document" => document }) }
   end
   def present(@get_by_id, { :document_error, id, :enoent }) do
     { :ok, Jason.encode!("Could not generate document: No topic with id `#{id}` exists.") }
   end
   def present(@get_by_id, { :matched_search_terms, map }) do
-    { :ok, Jason.encode!(map) }
+    { :ok, Jason.encode!(%{ "match" => map }) }
   end
 
 end

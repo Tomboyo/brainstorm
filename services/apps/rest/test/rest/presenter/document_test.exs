@@ -7,7 +7,7 @@ defmodule Rest.Presenter.DocumentTest do
       Database.Topic.new("label"),
       [ Database.Fact.new("content", [ Database.Id.new() ])])
 
-    assert { :ok, Jason.encode!(document) } ==
+    assert { :ok, Jason.encode!(%{ "document" => document }) } ==
       Document.present({ :get, "/:id" }, document)
   end
 
@@ -22,7 +22,7 @@ defmodule Rest.Presenter.DocumentTest do
 
   test "presents matched search terms" do
     matches = %{ "term" => MapSet.new() }
-    assert { :ok, Jason.encode!(matches) } ==
+    assert { :ok, Jason.encode!(%{ "match" => matches }) } ==
       Document.present({ :get, "/:id" }, { :matched_search_terms, matches })
   end
 end
