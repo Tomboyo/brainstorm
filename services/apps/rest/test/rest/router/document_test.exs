@@ -101,4 +101,51 @@ defmodule Rest.Router.DocumentTest do
         |> Enum.member?({ "content-type", "application/json" })
     end
   end
+
+  describe "GET /document/:term (when :term matches zero or many topics)" do
+    setup do
+      # resolves the term to matched topics,
+      Database.TopicMock
+      |> expect(:resolve_id, fn "mock term" ->
+          { :match, %{ "mock term" => :mock_matches }}
+        end)
+
+      # then presents those matches to the client.
+      route = { :get, "/:id" }
+      error = { :matched_search_terms, %{ "mock term" => :mock_matches }}
+      Rest.Presenter.DocumentMock
+      |> expect(:present, fn ^route, ^error ->
+          { :ok, "presented matches" }
+        end)
+
+      conn =
+        conn(:get, "/document/mock%20term", nil)
+        |> Router.call(@opts)
+
+      [ conn: conn ]
+    end
+
+    test "fails to find a document and presents matches to the client" do
+      Mox.verify!()
+    end
+
+    test "returns the presented matches", %{
+      conn: conn
+    } do
+      assert "presented matches" == conn.resp_body
+    end
+
+    test "responds with a 200 status code", %{
+      conn: conn
+    } do
+      assert 200 == conn.status
+    end
+
+    test "responds with an application/json content-type", %{
+      conn: conn
+    } do
+      assert conn.resp_headers
+        |> Enum.member?({ "content-type", "application/json" })
+    end
+  end
 end

@@ -2,25 +2,27 @@ defmodule Rest.Presenter.DocumentTest do
   use ExUnit.Case
   alias Rest.Presenter.Document
 
-  describe "GET /:id" do
-    test "json-encodes the document" do
-      document = Database.Document.new(
-        Database.Topic.new("label"),
-        [ Database.Fact.new("content", [ Database.Id.new() ])])
+  test "presents documents" do
+    document = Database.Document.new(
+      Database.Topic.new("label"),
+      [ Database.Fact.new("content", [ Database.Id.new() ])])
 
-      assert { :ok, Jason.encode!(document) } ==
-        Document.present({ :get, "/:id" }, document)
-    end
+    assert { :ok, Jason.encode!(document) } ==
+      Document.present({ :get, "/:id" }, document)
   end
 
-  describe "GET /:id (when given a missing-document error)" do
-    test "json-encodes an error message" do
-      assert { :ok, Jason.encode!(
-        "Could not generate document: No topic with id `id` exists.")
-      } == Document.present(
-        { :get, "/:id" },
-        { :document_error, "id", :enoent }
-      )
-    end
+  test "presents missing document errors" do
+    assert { :ok, Jason.encode!(
+      "Could not generate document: No topic with id `id` exists.")
+    } == Document.present(
+      { :get, "/:id" },
+      { :document_error, "id", :enoent }
+    )
+  end
+
+  test "presents matched search terms" do
+    matches = %{ "term" => MapSet.new() }
+    assert { :ok, Jason.encode!(matches) } ==
+      Document.present({ :get, "/:id" }, { :matched_search_terms, matches })
   end
 end

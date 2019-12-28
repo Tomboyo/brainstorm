@@ -27,10 +27,13 @@ defmodule Rest.Router.Document do
       |> Maybe.map(:id, &@topic_db.resolve_id(&1), :id_error)
       |> Maybe.map(&@document_db.fetch(&1),        :document_error)
       |> Maybe.produce()
-    |> case do
-      { :ok, document } -> send_resp(conn, 200, present!.(document))
-      { :error, e = { :document_error, _id, :enoent }} ->
-        send_resp(conn, 404, present!.(e))
+      |> case do
+        { :ok, document } -> send_resp(conn, 200, present!.(document))
+        { :error, e = { :document_error, _id, :enoent }} ->
+          send_resp(conn, 404, present!.(e))
+        { :error, { :id_error, _term, { :match, matches }}} ->
+          body = present!.({ :matched_search_terms, matches })
+          send_resp(conn, 200, body)
     end
   end
 
