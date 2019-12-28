@@ -3,11 +3,13 @@ require 'brainstorm/adoc_presenter'
 require 'brainstorm/model/document'
 require 'brainstorm/model/fact'
 require 'brainstorm/model/topic'
+require 'brainstorm/service/response'
 
 require "minitest/autorun"
 require 'minitest/mock'
 
 module Brainstorm::AdocPresenterTest
+  Response = Brainstorm::Service::Response
   Document = Brainstorm::Model::Document
   Fact     = Brainstorm::Model::Fact
   Topic    = Brainstorm::Model::Topic
@@ -58,11 +60,44 @@ module Brainstorm::AdocPresenterTest
     end
 
     describe '#fetch_document' do
-      describe 'given a not-found error' do
+      describe 'given an enoent response' do
         it 'indicates that the document was not found' do
+          response = Response.new(:enoent, nil)
           assert_equal(
             "Could not generate document: No topic with the given id exists.",
-            @presenter.fetch_document(:enoent))
+            @presenter.fetch_document(response))
+        end
+      end
+
+      describe 'given a match response' do
+        it 'indicates when no topics were found by the search term' do
+          response = Response.new(:match, { "none" => Set.new() })
+          actual = @presenter.fetch_document(response)
+          expected = "No topics could be found for the search term \"none\"."
+
+          assert_equal expected, actual
+        end
+
+        it 'renders matched topics' do
+          topic_a  = Topic.new('topic-a-id', 'Topic A')
+          topic_b  = Topic.new('topic-b-id', 'Topic B')
+          response = Response.new(:match, {
+            "topic" => Set.new([ topic_b, topic_a ])
+          })
+          actual = @presenter.fetch_document(response)
+
+          # Characterization test.
+          # The list is sorted by topic label.
+          expected =
+            <<~MESSAGE
+            The term "topic" matched the following topics:
+            * Topic A (topic-a-id)
+            * Topic B (topic-b-id)
+            Please refine your request to match a specific topic.
+            MESSAGE
+          .strip()
+
+          assert_equal expected, actual
         end
       end
 
@@ -74,13 +109,13 @@ module Brainstorm::AdocPresenterTest
           fact_2   = Fact.new('fact-2-id', 'fact 2 content', [ topic_a, topic_b ])
           document = Document.new(topic_a, [ fact_1, fact_2 ])
 
-          @subject = @presenter.fetch_document(document)
+          response = Response.new(:document, document)
+          @subject = @presenter.fetch_document(response)
         end
 
-        # Characterization test for simplicity.
-        # Note that order is imposed alphabetically.
-        # ( Topics are orderd alphabetically by label, paragraphs are organized
-        # alphabetically by heading.)
+        # Characterization test.
+        # Paragraphs are ordered alphabetically by their heading.
+        # Headings are generated alphabetically by topic label.
         it 'renders the document in ADOC' do
           expected =
             <<~ADOC

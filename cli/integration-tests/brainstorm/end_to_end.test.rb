@@ -21,6 +21,7 @@ require 'minitest/autorun'
 # on client-service integration without being bogged down by output formatting.
 # Hence, this is _mostly_ an end-to-end test.
 module Brainstorm::CliTest
+  Response = Brainstorm::Service::Response
   Document = Brainstorm::Model::Document
   Fact     = Brainstorm::Model::Fact
   Topic    = Brainstorm::Model::Topic
@@ -98,8 +99,9 @@ module Brainstorm::CliTest
           # we must pass a string with a valid id structure so that the rest
           # service does not interpret this as a search term.
           fake_uuid = '88888888-4444-4444-4444-121212121212'
-          error = @cli.call([ 'fetch-document', fake_uuid ])
-          assert_equal(:enoent, error)
+          actual = @cli.call([ 'fetch-document', fake_uuid ])
+          expected = Response.new(:enoent, nil)
+          assert_equal expected, actual
         end
       end
 
@@ -122,15 +124,46 @@ module Brainstorm::CliTest
         end
 
         it 'generates a document from topic A related to B by F' do
-          document = @cli.call([ 'fetch-document', @topic_a_id ])
-          expected = Document.new(@topic_a, [ @fact ])
-          assert_equal expected, document
+          actual = @cli.call([ 'fetch-document', @topic_a_id ])
+          expected = Response.new(:document, Document.new(@topic_a, [ @fact ]))
+          assert_equal expected, actual
         end
 
         it 'generates documents from topic B related to A by F' do
-          document = @cli.call([ 'fetch-document', @topic_b_id ])
-          expected = Document.new(@topic_b, [ @fact ])
-          assert_equal expected, document
+          actual = @cli.call([ 'fetch-document', @topic_b_id ])
+          expected = Response.new(:document, Document.new(@topic_b, [ @fact ]))
+          assert_equal expected, actual
+        end
+      end
+
+      describe 'given a term which matches zero topics' do
+        it 'returns a mapping from the term to the empty set' do
+          actual = @cli.call([ 'fetch-document', 'none' ])
+          expected = Response.new(:match, { 'none' => Set.new() })
+          assert_equal expected, actual
+        end
+      end
+
+      describe 'given a term which matches many topics' do
+        before do
+          @topic_a_id = @cli.call([ 'create-topic', 'Topic A' ])
+          @topic_b_id = @cli.call([ 'create-topic', 'Topic B' ])
+          @topic_a = Topic.new(@topic_a_id, 'Topic A')
+          @topic_b = Topic.new(@topic_b_id, 'Topic B')
+        end
+
+        after do
+          @service.delete_topic(@topic_a_id)
+          @service.delete_topic(@topic_b_id)
+        end
+
+        it 'returns a mapping from the term to the set of matched topics' do
+          actual = @cli.call([ 'fetch-document', 'Topic' ])
+          expected = Response.new(
+            :match,
+            { 'Topic' => Set.new([ @topic_a, @topic_b ]) })
+          
+          assert_equal expected, actual
         end
       end
     end

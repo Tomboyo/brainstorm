@@ -6,13 +6,13 @@ require 'brainstorm/model/document'
 class Brainstorm::AdocPresenter
 
   def fetch_document(response)
-    case response
-    when Brainstorm::Model::Document
-      present_document(response)
+    case response.code
+    when :document
+      present_document(response.value)
     when :enoent
       "Could not generate document: No topic with the given id exists."
-    else
-      present_error(response)
+    when :match
+      present_document_matches(response.value)
     end
   end
 
@@ -56,8 +56,6 @@ class Brainstorm::AdocPresenter
     ].join("\n\n") << "\n"
   end
 
-  private
-
   def title(text)
     heading(1, text)
   end
@@ -97,4 +95,29 @@ class Brainstorm::AdocPresenter
     end
     [ fact_id, *topic_bullets ].join("\n")
   end
+
+  def present_document_matches(matches)
+    term, topics = matches.to_a()[0] # there is only one k-v pair
+
+    if topics.empty?
+      unmatched_term(term)
+    else
+      matched_term(term, topics)
+    end
+  end
+
+  def unmatched_term(term)
+    "No topics could be found for the search term \"#{term}\"."
+  end
+
+  def matched_term(term, topics)
+    rendered_term = "The term \"#{term}\" matched the following topics:"
+    rendered_topics = topics
+      .map { |topic| "* #{topic.label} (#{topic.id})" }
+      .sort
+    footer = "Please refine your request to match a specific topic."
+    
+    [ rendered_term, *rendered_topics, footer ].join("\n")
+  end
+
 end

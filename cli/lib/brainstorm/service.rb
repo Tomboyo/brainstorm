@@ -1,6 +1,7 @@
 require 'brainstorm'
 require 'brainstorm/logging'
 require 'brainstorm/model/document'
+require 'brainstorm/service/response'
 
 require 'http'
 require 'json'
@@ -37,9 +38,18 @@ class Brainstorm::Service
     case response.code
     when 200
       json = JSON.parse(response.body.to_s)
-      Brainstorm::Model::Document.from_hash(json)
+      unless json["document"].nil?
+        Response.new(
+          :document,
+          Brainstorm::Model::Document.from_hash(json["document"]))
+      else
+        match = json['match'].transform_values do |list|
+          Set.new(list.map! { |x| Brainstorm::Model::Topic.from_hash(x) })
+        end
+        Response.new(:match, match)
+      end
     when 404
-      :enoent
+      Response.new(:enoent, nil)
     end
   rescue Exception => e
     log_error("Failed to fetch id `#{id}`", e)
