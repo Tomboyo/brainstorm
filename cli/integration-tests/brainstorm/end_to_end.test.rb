@@ -150,6 +150,7 @@ module Brainstorm::CliTest
 
           @mock_editor.expect :get_content, 'fact content'
           @fact_f_id = @cli.call([ 'create-fact', @topic_a_id, @topic_b_id ])
+            .value
 
           @topic_a = Topic.new(@topic_a_id, 'Topic A')
           @topic_b = Topic.new(@topic_b_id, 'Topic B')

@@ -37,13 +37,12 @@ class Brainstorm::Service
           :document,
           Brainstorm::Model::Document.from_hash(json["document"]))
       else
-        match = json['match'].transform_values do |list|
-          Set.new(list.map! { |x| Brainstorm::Model::Topic.from_hash(x) })
-        end
-        Response.new(:match, match)
+        Response.new(:match, get_matches(json))
       end
     when 404
       Response.new(:enoent, nil)
+    else
+      unexpected_response_code(response.code)
     end
   rescue Exception
     raise ServiceError, "Failed to fetch document `#{id}`"
@@ -51,11 +50,17 @@ class Brainstorm::Service
 
   def create_fact(terms, content)
     payload = { 'topics' => terms, 'content' => content }
-    HTTP.post("#{@base}/fact", {
-        json: payload})
-      .body
-      .to_s
-      .yield_self { |x| JSON.parse(x) }
+    response = HTTP.post("#{@base}/fact", { json: payload})
+
+    case response.code
+    when 201
+      json = JSON.parse(response.body.to_s)
+      Response.new(:id, json)
+    when 200
+      Response.new(:match, get_matches(json))
+    else
+      unexpected_response_code(response.code)
+    end
   rescue Exception
     raise ServiceError, "Failed to create fact `#{payload}`"
   end
@@ -72,17 +77,28 @@ class Brainstorm::Service
   end
 
   def delete_topic(id)
-    code = HTTP.delete("#{@base}/topic/#{id}").code
-    case code
+    response = HTTP.delete("#{@base}/topic/#{id}")
+    case response.code
     when 204
       :ok
     when 404
       :enoent
     else
-      new ServiceError(code)
+      unexpected_response_code(response.code)
     end
   rescue Exception
     raise ServiceError, "Failed to delete topic by term `#{id}`"
   end
 
+  private
+
+  def unexpected_response_code(code)
+    raise "Unexpected response code `#{code}`"
+  end
+
+  def get_matches(json)
+    json['match'].transform_values do |list|
+      Set.new(list.map! { |x| Brainstorm::Model::Topic.from_hash(x) })
+    end
+  end
 end
