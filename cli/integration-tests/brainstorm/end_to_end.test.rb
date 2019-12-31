@@ -50,6 +50,44 @@ module Brainstorm::CliTest
       end
     end
 
+    describe '`create-fact`' do
+      describe 'given a term which matches nothing' do
+        it 'returns an empty match response' do
+          expected = Response.new(:match, { "term" => Set.new() })
+
+          @mock_editor.expect(:get_content, "content")
+          actual = @cli.call([ 'create-fact', 'term' ])
+
+          assert_equal expected, actual
+        end
+      end
+
+      describe 'given a term which matches several topics' do
+        before do
+          @topic_a_id = @cli.call([ 'create-topic', 'Topic A' ])
+          @topic_b_id = @cli.call([ 'create-topic', 'Topic B' ])
+          @topic_a = Topic.new(@topic_a_id, 'Topic A')
+          @topic_b = Topic.new(@topic_b_id, 'Topic B')
+        end
+  
+        after do
+          @service.delete_topic(@topic_a_id)
+          @service.delete_topic(@topic_b_id)
+        end
+
+        it 'returns a match response' do
+          expected = Response.new(:match, {
+            "Topic" => Set.new([ @topic_a, @topic_b ])
+          })
+
+          @mock_editor.expect(:get_content, "content")
+          actual = @cli.call([ 'create-fact', 'Topic' ])
+          
+          assert_equal expected, actual
+        end
+      end
+    end
+
     describe '`find-topics` <term>' do
       describe 'given a search term which matches nothing' do
         it 'returns the empty set' do
