@@ -49,6 +49,46 @@ module Brainstorm::AdocPresenterTest
       end
     end
 
+    describe '#create_fact' do
+      describe 'given an id response' do
+        it 'renders the ID payload of the response' do
+          response = Response.new(:id, "mock id")
+          assert_equal "mock id", @presenter.create_fact(response)
+        end
+      end
+
+      describe 'given a match response' do
+        before do
+          topic_a = Topic.new('topic-a-id', 'Topic A')
+          topic_b = Topic.new('topic-b-id', 'Topic B')
+          @response = Response.new(:match, {
+            "unmatched" => Set.new(),
+            "matched" => Set.new([ topic_a, topic_b ])
+          })
+        end
+
+        it 'renders matched topics for each search term' do
+          actual = @presenter.create_fact(@response)
+
+          # Match results are rendered alphabetically by term
+          # Matched topics are rendered alphabeitcally by label
+          expected =
+            <<~ADOC
+            The term "matched" matched the following topics:
+            * Topic A (topic-a-id)
+            * Topic B (topic-b-id)
+
+            No topics could be found for the search term "unmatched".
+
+            Please refine your request to match a specific topic.
+            ADOC
+            .strip()
+
+          assert_equal expected, actual
+        end
+      end
+    end
+
     describe '#fetch_document' do
       describe 'given an enoent response' do
         it 'indicates that the document was not found' do
@@ -63,7 +103,14 @@ module Brainstorm::AdocPresenterTest
         it 'indicates when no topics were found by the search term' do
           response = Response.new(:match, { "none" => Set.new() })
           actual = @presenter.fetch_document(response)
-          expected = "No topics could be found for the search term \"none\"."
+
+          expected =
+            <<~MESSAGE
+            No topics could be found for the search term \"none\".
+
+            Please refine your request to match a specific topic.
+            MESSAGE
+            .strip()
 
           assert_equal expected, actual
         end
@@ -83,9 +130,10 @@ module Brainstorm::AdocPresenterTest
             The term "topic" matched the following topics:
             * Topic A (topic-a-id)
             * Topic B (topic-b-id)
+
             Please refine your request to match a specific topic.
             MESSAGE
-          .strip()
+            .strip()
 
           assert_equal expected, actual
         end

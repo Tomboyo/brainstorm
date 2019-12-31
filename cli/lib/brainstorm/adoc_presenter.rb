@@ -5,6 +5,15 @@ require 'brainstorm/model/document'
 
 class Brainstorm::AdocPresenter
 
+  def create_fact(response)
+    case response.code
+    when :id
+      response.value
+    when :match
+      present_matches(response.value)
+    end
+  end
+
   def fetch_document(response)
     case response.code
     when :document
@@ -12,7 +21,7 @@ class Brainstorm::AdocPresenter
     when :enoent
       "Could not generate document: No topic with the given id exists."
     when :match
-      present_document_matches(response.value)
+      present_matches(response.value)
     end
   end
 
@@ -85,28 +94,38 @@ class Brainstorm::AdocPresenter
     [ fact_id, *topic_bullets ].join("\n")
   end
 
-  def present_document_matches(matches)
-    term, topics = matches.to_a()[0] # there is only one k-v pair
+  def present_matches(matches)
+    # sort matches by search term string
+    matches = matches.to_a.sort { |a, b| a[0] <=> b[0] }
+    # present each match group
+    presented = matches.map { |term, topics| present_match(term, topics) }
+    # separate each presentation by a paragraph followed by a footer
+    [ *presented, matches_footer() ].join("\n\n")
+  end
 
+  def present_match(term, topics)
     if topics.empty?
-      unmatched_term(term)
+      present_unmatched_term(term)
     else
-      matched_term(term, topics)
+      present_matched_term(term, topics)
     end
   end
 
-  def unmatched_term(term)
+  def present_unmatched_term(term)
     "No topics could be found for the search term \"#{term}\"."
   end
 
-  def matched_term(term, topics)
+  def present_matched_term(term, topics)
     rendered_term = "The term \"#{term}\" matched the following topics:"
     rendered_topics = topics
       .map { |topic| "* #{topic.label} (#{topic.id})" }
       .sort
-    footer = "Please refine your request to match a specific topic."
     
-    [ rendered_term, *rendered_topics, footer ].join("\n")
+    [ rendered_term, *rendered_topics ].join("\n")
+  end
+
+  def matches_footer
+    "Please refine your request to match a specific topic."
   end
 
 end
