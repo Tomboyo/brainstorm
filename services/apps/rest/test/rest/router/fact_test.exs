@@ -78,7 +78,7 @@ defmodule Rest.Router.FactTest do
 
       # and presents the matches to the client
       Rest.Presenter.FactMock
-      |> expect(:present, fn { :post, "/" }, :mock_matches ->
+      |> expect(:present, fn { :post, "/" }, { :match, :mock_matches } ->
           { :ok, "presented matches" }
         end)
 

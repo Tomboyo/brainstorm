@@ -1,6 +1,6 @@
 defmodule Rest.Router.Fact do
-  import Database.Sets, only: [ empty_set: 0 ]
   use Plug.Router
+  alias Rest.Util.Maybe
 
   @topic_db  Application.get_env(:rest, :topic_database, Database.Topic)
   @fact_db   Application.get_env(:rest, :fact_database, Database.Fact)
@@ -13,25 +13,44 @@ defmodule Rest.Router.Fact do
   plug :dispatch
 
   post "/" do
-    with { :ok, params }  <- Map.fetch(conn, :params),
-         { :ok, topics }  <- Map.fetch(params, "topics"),
-         { :ok, content } <- Map.fetch(params, "content"),
-         %{ id: ids, match: %{}} <- @topic_db.resolve_ids(topics),
-         fact             <- @fact_db.new(content, ids),
-         :ok              <- @fact_db.persist(fact),
-         { :ok, body }    <- @presenter.present({ :post, "/" }, fact)
-    do
-      conn
-      |> put_resp_header("content-type", "application/json")
-      |> send_resp(201, body)
-    else
-      %{ id: empty_set(), match: map } ->
-        { :ok, body } = @presenter.present({ :post, "/" }, map)
+    present! = &Rest.Presenter.present!(@presenter, { :post, "/" }, &1)
+    conn = put_resp_header(conn, "content-type", "application/json")
 
-        conn
-        |> put_resp_header("content-type", "application/json")
-        |> send_resp(200, body)
+    Maybe.of(fn -> conn end)
+    |> Maybe.map(&Map.fetch(&1, :params), :missing_params)
+    |> Maybe.map(&get_params/1,           :missing_param)
+    |> Maybe.map(&resolve_ids/1,          :unresolved_ids)
+    |> Maybe.replace(&persist_new_fact/1)
+    |> Maybe.produce()
+    |> case do
+      { :ok, fact } -> conn
+        |> send_resp(201, present!.(fact))
+      { :error, { :unresolved_ids, _params, e = { :match, _match }}} -> conn
+        |> send_resp(200, present!.(e))
+
     end
+  end
+
+  defp get_params(params) do
+    topics = Map.get(params, "topics", :error)
+    content = Map.get(params, "content", :error)
+    value = %{ topics: topics, content: content }
+    if topics == :error or content == :error,
+      do:   { :error, value },
+      else: { :ok,    value }
+  end
+
+  defp resolve_ids(params) do
+    case @topic_db.resolve_ids(params.topics) do
+      %{ id: ids, match: %{} } -> { :ok, %{ params | topics: ids }}
+      %{ id: _, match: match } -> { :match, match }
+    end
+  end
+
+  defp persist_new_fact(%{ topics: topics, content: content }) do
+    fact = @fact_db.new(content, topics)
+    @fact_db.persist(fact)
+    fact
   end
 
 end
