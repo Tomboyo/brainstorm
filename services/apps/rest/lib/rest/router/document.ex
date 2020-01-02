@@ -21,12 +21,11 @@ defmodule Rest.Router.Document do
     present! = &Presenter.present!(@presenter, { :get, "/:id" }, &1)
     conn = put_resp_header(conn, "content-type", "application/json")
 
-    Maybe.of(fn -> conn end)
-      |> Maybe.map(&Map.fetch(&1, :params),        :missing_params)
-      |> Maybe.map(&Map.fetch(&1, "id"),           :missing_id)
-      |> Maybe.map(:id, &@topic_db.resolve_id(&1), :id_error)
-      |> Maybe.map(&@document_db.fetch(&1),        :document_error)
-      |> Maybe.produce()
+    Maybe.of(conn)
+      |> Maybe.map(&Map.get(&1, :params), :missing_params)
+      |> Maybe.map(&Map.get(&1, "id"),    :missing_id)
+      |> Maybe.flat_map(&resolve_id/1,    :id_error)
+      |> Maybe.flat_map(&fetch/1,         :document_error)
       |> case do
         { :ok, document } -> send_resp(conn, 200, present!.(document))
         { :error, e = { :document_error, _id, :enoent }} ->
@@ -34,6 +33,20 @@ defmodule Rest.Router.Document do
         { :error, { :id_error, _term, { :match, matches }}} ->
           body = present!.({ :matched_search_terms, matches })
           send_resp(conn, 200, body)
+    end
+  end
+
+  defp resolve_id(id) do
+    case @topic_db.resolve_id(id) do
+      { :id, id } -> { :ok, id }
+      e = _       -> { :error, e }
+    end
+  end
+
+  defp fetch(id) do
+    case @document_db.fetch(id) do
+      :enoent -> { :error, :enoent }
+      ok = { :ok, _ } -> ok
     end
   end
 

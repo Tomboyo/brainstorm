@@ -16,12 +16,11 @@ defmodule Rest.Router.Fact do
     present! = &Rest.Presenter.present!(@presenter, { :post, "/" }, &1)
     conn = put_resp_header(conn, "content-type", "application/json")
 
-    Maybe.of(fn -> conn end)
-    |> Maybe.map(&Map.fetch(&1, :params), :missing_params)
-    |> Maybe.map(&get_params/1,           :missing_param)
-    |> Maybe.map(&resolve_ids/1,          :unresolved_ids)
-    |> Maybe.replace(&persist_new_fact/1)
-    |> Maybe.produce()
+    Maybe.of(conn)
+    |> Maybe.map(&Map.get(&1, :params), :missing_params)
+    |> Maybe.flat_map(&get_params/1,    :missing_param)
+    |> Maybe.flat_map(&resolve_ids/1,   :unresolved_ids)
+    |> Maybe.map!(&persist_new_fact/1)
     |> case do
       { :ok, fact } -> conn
         |> send_resp(201, present!.(fact))
@@ -43,7 +42,7 @@ defmodule Rest.Router.Fact do
   defp resolve_ids(params) do
     case @topic_db.resolve_ids(params.topics) do
       %{ id: ids, match: %{} } -> { :ok, %{ params | topics: ids }}
-      %{ id: _, match: match } -> { :match, match }
+      %{ id: _, match: match } -> { :error, { :match, match }}
     end
   end
 
