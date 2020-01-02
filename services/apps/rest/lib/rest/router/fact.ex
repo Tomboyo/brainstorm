@@ -26,7 +26,6 @@ defmodule Rest.Router.Fact do
         |> send_resp(201, present!.(fact))
       { :error, { :unresolved_ids, _params, e = { :match, _match }}} -> conn
         |> send_resp(200, present!.(e))
-
     end
   end
 
@@ -41,8 +40,9 @@ defmodule Rest.Router.Fact do
 
   defp resolve_ids(params) do
     case @topic_db.resolve_ids(params.topics) do
-      %{ id: ids, match: %{} } -> { :ok, %{ params | topics: ids }}
-      %{ id: _, match: match } -> { :error, { :match, match }}
+      %{ id: ids, match: matches } when matches == %{} ->
+        { :ok, %{ params | topics: ids }}
+      %{ id: _ids, match: matches } -> { :error, { :match, matches }}
     end
   end
 

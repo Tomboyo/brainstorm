@@ -57,11 +57,13 @@ class Brainstorm::Service
       json = JSON.parse(response.body.to_s)
       Response.new(:id, json)
     when 200
+      json = JSON.parse(response.body.to_s)
       Response.new(:match, get_matches(json))
     else
       unexpected_response_code(response.code)
     end
-  rescue Exception
+  rescue Exception => e
+    puts e
     raise ServiceError, "Failed to create fact `#{payload}`"
   end
 
@@ -98,7 +100,7 @@ class Brainstorm::Service
 
   def get_matches(json)
     json['match'].transform_values do |list|
-      Set.new(list.map! { |x| Brainstorm::Model::Topic.from_hash(x) })
+      Set.new(list.map { |x| Brainstorm::Model::Topic.from_hash(x) })
     end
   end
 end

@@ -12,7 +12,7 @@ defmodule Rest.Presenter.FactTest do
 
     test "json-encodes unresolved match results" do
       matches = %{ "search term" => Database.Topic.new("similar label") }
-      assert { :ok, Jason.encode!(matches) } ==
+      assert { :ok, Jason.encode!(%{ "match" => matches}) } ==
         Fact.present({ :post, "/" }, { :match, matches })
     end
   end

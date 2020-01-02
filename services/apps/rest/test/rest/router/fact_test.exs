@@ -73,12 +73,13 @@ defmodule Rest.Router.FactTest do
       # maps search terms to matched topics
       Database.TopicMock
       |> expect(:resolve_ids, fn ^topics ->
-        %{ id: MapSet.new(), match: :mock_matches }
+        %{ id: :ids, match: %{ "search term" => :mock_matches }}
       end)
 
       # and presents the matches to the client
+      match_error = { :match, %{ "search term" => :mock_matches }}
       Rest.Presenter.FactMock
-      |> expect(:present, fn { :post, "/" }, { :match, :mock_matches } ->
+      |> expect(:present, fn { :post, "/" }, ^match_error ->
           { :ok, "presented matches" }
         end)
 

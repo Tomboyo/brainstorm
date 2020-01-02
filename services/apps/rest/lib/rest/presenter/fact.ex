@@ -6,6 +6,7 @@ defmodule Rest.Presenter.Fact do
   def present({ :post, "/" }, %Database.Fact{} = fact) do
     Jason.encode(fact.id)
   end
-  def present({ :post, "/" }, { :match, matches }), do: Jason.encode(matches)
+  def present({ :post, "/" }, { :match, matches }),
+    do: Jason.encode(%{ "match" => matches })
 
 end
