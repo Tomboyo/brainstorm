@@ -10,16 +10,9 @@ require 'minitest/autorun'
 
 # A (mostly) end-to-end test of CLI integration with the REST service.
 #
-# We exercise the Cli class directly, which exercises unit integrations within
-# the client code.
-#
-# We mock the presentation logic so that Service return values come back
-# directly. This lets us validate the integration without also performing
-# characterization tests of the presentation logic.
-#
-# Thus, we passively confirm that units integrate correctly while concentrating
-# on client-service integration without being bogged down by output formatting.
-# Hence, this is _mostly_ an end-to-end test.
+# This should be broken apart into multiple tests:
+# (1) A mock-based test of the Cli control flow
+# (2) A service integration test
 module Brainstorm::CliTest
   Response = Brainstorm::Service::Response
   Document = Brainstorm::Model::Document
@@ -32,6 +25,7 @@ module Brainstorm::CliTest
     def fetch_document(document) ; document ; end
     def find_topics(topics) ; topics ; end
     def delete_topic(signal) ; signal ; end
+    def create_fact(term) ; term ; end
   end
 
   describe Brainstorm::Cli do

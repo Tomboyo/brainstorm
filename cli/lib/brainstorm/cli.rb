@@ -61,7 +61,8 @@ class Brainstorm::Cli
     else
       ids_or_search_terms = args
       content = @editor.get_content()
-      @service.create_fact(ids_or_search_terms, content)
+      response = @service.create_fact(ids_or_search_terms, content)
+      @presenter.create_fact(response)
     end
   end
 
