@@ -1,56 +1,50 @@
 require "brainstorm"
 require 'brainstorm/service'
-require 'brainstorm/cli'
-require 'brainstorm/logging'
 require 'brainstorm/model/document'
 require 'brainstorm/model/fact'
+require 'brainstorm/model/id'
 require 'brainstorm/model/topic'
 
 require 'minitest/autorun'
 
-# A (mostly) end-to-end test of CLI integration with the REST service.
-#
-# This should be broken apart into multiple tests:
-# (1) A mock-based test of the Cli control flow
-# (2) A service integration test
 module Brainstorm::CliTest
   Response = Brainstorm::Service::Response
   Document = Brainstorm::Model::Document
   Fact     = Brainstorm::Model::Fact
+  Id       = Brainstorm::Model::Id
   Topic    = Brainstorm::Model::Topic
 
-  # Allows this suite to operate on the data structures instead of renderings
-  # of those structures.
-  class NoopPresenter
-    def fetch_document(document) ; document ; end
-    def find_topics(topics) ; topics ; end
-    def delete_topic(signal) ; signal ; end
-    def create_fact(term) ; term ; end
-  end
-
-  describe Brainstorm::Cli do
+  describe Brainstorm::Service do
     before do
       @service = Brainstorm::Service.new(
         "host" => 'localhost',
         "port" => 8080)
-      presenter = NoopPresenter.new
-      @mock_editor = Minitest::Mock.new
-      @cli = Brainstorm::Cli.new(@service, @mock_editor, presenter)
     end
 
-    describe '`version`' do
-      it 'returns the cli version' do
-        assert_equal Brainstorm::VERSION, @cli.call([ 'version' ])
+    # TODO: verify side-effects with get_topic
+    describe '#create_topic' do
+      before do
+        @subject = @service.create_topic("topic label")
+      end
+
+      after do
+        @service.delete_topic(@subject)
+      end
+
+      it 'returns the id of the newly-created topic' do
+        assert Id.is_id?(@subject)
       end
     end
 
-    describe '`create-fact`' do
+    describe '#create_fact' do
+
+      # TODO: Response.new(:id, id) case
+
       describe 'given a term which matches nothing' do
         it 'returns an empty match response' do
           expected = Response.new(:match, { "term" => Set.new() })
 
-          @mock_editor.expect(:get_content, "content")
-          actual = @cli.call([ 'create-fact', 'term' ])
+          actual = @service.create_fact([ 'term' ], 'content')
 
           assert_equal expected, actual
         end
@@ -58,8 +52,8 @@ module Brainstorm::CliTest
 
       describe 'given a term which matches several topics' do
         before do
-          @topic_a_id = @cli.call([ 'create-topic', 'Topic A' ])
-          @topic_b_id = @cli.call([ 'create-topic', 'Topic B' ])
+          @topic_a_id = @service.create_topic('Topic A')
+          @topic_b_id = @service.create_topic('Topic B')
           @topic_a = Topic.new(@topic_a_id, 'Topic A')
           @topic_b = Topic.new(@topic_b_id, 'Topic B')
         end
@@ -74,25 +68,26 @@ module Brainstorm::CliTest
             "Topic" => Set.new([ @topic_a, @topic_b ])
           })
 
-          @mock_editor.expect(:get_content, "content")
-          actual = @cli.call([ 'create-fact', 'Topic' ])
+          actual = @service.create_fact([ 'Topic' ], 'content')
           
           assert_equal expected, actual
         end
       end
     end
 
-    describe '`find-topics` <term>' do
+    describe '#find_topics' do
       describe 'given a search term which matches nothing' do
         it 'returns the empty set' do
-          assert_equal Set.new(), @cli.call([ 'find-topics', 'notopic' ])
+          assert_equal Set.new(), @service.find_topics('notopic')
         end
       end
 
       describe 'given a search term which matches topics' do
         before do
-          @topic_a_id = @cli.call([ 'create-topic', 'Topic A' ])
-          @topic_b_id = @cli.call([ 'create-topic', 'Topic B' ])
+          @topic_a_id = @service.create_topic('Topic A')
+          @topic_b_id = @service.create_topic('Topic B')
+          @topic_a = Topic.new(@topic_a_id, 'Topic A')
+          @topic_b = Topic.new(@topic_b_id, 'Topic B')
         end
   
         after do
@@ -101,37 +96,35 @@ module Brainstorm::CliTest
         end
   
         it 'returns a set of those topics' do
-          assert_equal(
-            Set.new([
-              Topic.new(@topic_a_id, 'Topic A'),
-              Topic.new(@topic_b_id, 'Topic B')
-            ]),
-            @cli.call([ 'find-topics', 'Topic' ])
-          )
+          expected = Set.new([ @topic_a, @topic_b ])
+          actual = @service.find_topics('Topic')
+          assert_equal expected, actual
         end
       end
     end
 
-    describe 'delete-topic <topic-id>' do
+    describe '#delete_topic' do
       describe 'given the id of a topic' do
         before do
-          @topic_a_id = @cli.call([ 'create-topic', 'Topic A' ])
+          @topic_a_id = @service.create_topic('Topic A')
         end
 
         it 'deletes the topic' do
-          @cli.call([ 'delete-topic', @topic_a_id ])
-          assert_equal Set.new(), @cli.call([ 'find-topics', 'Topic A' ])
+          @service.delete_topic(@topic_a_id)
+          expected = Set.new()
+          actual = @service.find_topics('Topic A')
+          assert_equal expected, actual
         end
       end
     end
 
-    describe '`fetch-document <topic-id>`' do
+    describe '#fetch_document' do
       describe 'given a topic id which identifies a missing topic' do
         it 'generates an error indicating that no topic exists' do
           # we must pass a string with a valid id structure so that the rest
           # service does not interpret this as a search term.
           fake_uuid = '88888888-4444-4444-4444-121212121212'
-          actual = @cli.call([ 'fetch-document', fake_uuid ])
+          actual = @service.fetch_document(fake_uuid)
           expected = Response.new(:enoent, nil)
           assert_equal expected, actual
         end
@@ -139,15 +132,16 @@ module Brainstorm::CliTest
 
       describe 'given topics A and B related by fact F' do
         before do
-          @topic_a_id = @cli.call([ 'create-topic', 'Topic A' ])
-          @topic_b_id = @cli.call([ 'create-topic', 'Topic B' ])
-
-          @mock_editor.expect :get_content, 'fact content'
-          @fact_f_id = @cli.call([ 'create-fact', @topic_a_id, @topic_b_id ])
-            .value
-
+          @topic_a_id = @service.create_topic('Topic A')
+          @topic_b_id = @service.create_topic('Topic B')
           @topic_a = Topic.new(@topic_a_id, 'Topic A')
           @topic_b = Topic.new(@topic_b_id, 'Topic B')
+
+          @fact_f_id = @service.create_fact(
+              [ @topic_a_id, @topic_b_id ],
+              'fact content')
+            .value
+
           @fact = Fact.new(@fact_f_id, 'fact content', [ @topic_a, @topic_b ])
         end
 
@@ -157,13 +151,13 @@ module Brainstorm::CliTest
         end
 
         it 'generates a document from topic A related to B by F' do
-          actual = @cli.call([ 'fetch-document', @topic_a_id ])
+          actual = @service.fetch_document(@topic_a_id)
           expected = Response.new(:document, Document.new(@topic_a, [ @fact ]))
           assert_equal expected, actual
         end
 
-        it 'generates documents from topic B related to A by F' do
-          actual = @cli.call([ 'fetch-document', @topic_b_id ])
+        it 'generates a document from topic B related to A by F' do
+          actual = @service.fetch_document(@topic_b_id)
           expected = Response.new(:document, Document.new(@topic_b, [ @fact ]))
           assert_equal expected, actual
         end
@@ -171,7 +165,7 @@ module Brainstorm::CliTest
 
       describe 'given a term which matches zero topics' do
         it 'returns a mapping from the term to the empty set' do
-          actual = @cli.call([ 'fetch-document', 'none' ])
+          actual = @service.fetch_document('none')
           expected = Response.new(:match, { 'none' => Set.new() })
           assert_equal expected, actual
         end
@@ -179,8 +173,8 @@ module Brainstorm::CliTest
 
       describe 'given a term which matches many topics' do
         before do
-          @topic_a_id = @cli.call([ 'create-topic', 'Topic A' ])
-          @topic_b_id = @cli.call([ 'create-topic', 'Topic B' ])
+          @topic_a_id = @service.create_topic('Topic A')
+          @topic_b_id = @service.create_topic('Topic B')
           @topic_a = Topic.new(@topic_a_id, 'Topic A')
           @topic_b = Topic.new(@topic_b_id, 'Topic B')
         end
@@ -191,7 +185,7 @@ module Brainstorm::CliTest
         end
 
         it 'returns a mapping from the term to the set of matched topics' do
-          actual = @cli.call([ 'fetch-document', 'Topic' ])
+          actual = @service.fetch_document('Topic')
           expected = Response.new(
             :match,
             { 'Topic' => Set.new([ @topic_a, @topic_b ]) })
